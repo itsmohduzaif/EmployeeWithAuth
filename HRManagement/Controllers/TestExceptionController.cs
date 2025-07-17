@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+// Will Delete this Controller
+
+using Microsoft.AspNetCore.Mvc;
 using HRManagement.Exceptions;
 
 [ApiController]

@@ -1,7 +1,7 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+
 
 namespace HRManagement.ExceptionHandlers
 {
@@ -28,18 +28,6 @@ namespace HRManagement.ExceptionHandlers
                 notFoundException,
                 "Exception occurred: {Message}",
                 notFoundException.Message);
-
-            //var problemDetails = new ProblemDetails
-            //{
-            //    Status = StatusCodes.Status404NotFound,
-            //    Title = "Not Found",
-            //    Detail = notFoundException.Message
-            //};
-
-            //httpContext.Response.StatusCode = problemDetails.Status.Value;
-
-            //await httpContext.Response
-            //    .WriteAsJsonAsync(problemDetails, cancellationToken);
 
             var apiResponse = new ApiResponse
             {

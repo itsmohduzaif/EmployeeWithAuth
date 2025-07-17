@@ -1,12 +1,7 @@
-﻿using HRManagement.Data;
-using HRManagement.DTOs;
-using HRManagement.Models;
+﻿using HRManagement.DTOs;
 using HRManagement.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace HRManagement.Controllers
 {

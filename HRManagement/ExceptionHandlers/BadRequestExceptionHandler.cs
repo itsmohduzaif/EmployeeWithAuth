@@ -1,7 +1,6 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace HRManagement.ExceptionHandlers
 {
@@ -28,18 +27,6 @@ namespace HRManagement.ExceptionHandlers
                 badRequestException,
                 "Exception occurred: {Message}",
                 badRequestException.Message);
-
-            //var problemDetails = new ProblemDetails
-            //{
-            //    Status = StatusCodes.Status400BadRequest,
-            //    Title = "Bad Request",
-            //    Detail = badRequestException.Message
-            //};
-
-            //httpContext.Response.StatusCode = problemDetails.Status.Value;
-
-            //await httpContext.Response
-            //    .WriteAsJsonAsync(problemDetails, cancellationToken);
 
             var apiResponse = new ApiResponse
             {
