@@ -1,4 +1,5 @@
 using HRManagement.Data;
+using HRManagement.ExceptionHandlers;
 using HRManagement.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -6,11 +7,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Register exception handling services
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
+builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+
+
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -62,6 +73,10 @@ builder.Logging.AddConsole();
 
 
 var app = builder.Build();
+
+// For exception handling 
+app.UseExceptionHandler();
+
 
 // Configure the HTTP request pipeline.
 
