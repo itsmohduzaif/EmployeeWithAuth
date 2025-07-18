@@ -67,6 +67,18 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
 });
 
+
+// Configure CORS to allow Angular app on localhost:4200
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp",
+        policy => policy.WithOrigins("http://localhost:4200")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
+
+
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
@@ -76,6 +88,10 @@ var app = builder.Build();
 
 // For exception handling 
 app.UseExceptionHandler();
+
+// Enable CORS for frontend
+app.UseCors("AllowAngularApp");
+
 
 
 // Configure the HTTP request pipeline.
