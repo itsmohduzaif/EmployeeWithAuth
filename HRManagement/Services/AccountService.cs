@@ -1,4 +1,6 @@
 ﻿using HRManagement.DTOs;
+using HRManagement.Entities;
+using HRManagement.JwtFeatures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,90 +11,57 @@ namespace HRManagement.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration;
+        //private readonly UserManager<IdentityUser> _userManager;
+        //private readonly RoleManager<IdentityRole> _roleManager;
+        //private readonly IConfiguration _configuration;
 
-        public AccountService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        private readonly UserManager<User> _userManager;
+        private readonly JwtHandler _jwtHandler;
+
+        public AccountService(UserManager<User> userManager, JwtHandler jwtHandler)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
-            _configuration = configuration;
+            _jwtHandler = jwtHandler;
+
         }
 
-        public async Task<ApiResponse> Register(Register model)
+        public async Task<ApiResponse> Register(UserForRegistrationDto userForRegistration)
         {
-            var user = new IdentityUser { UserName = model.Username, Email = model.Email };
-            var result = await _userManager.CreateAsync(user, model.Password);
+            if (userForRegistration is null)
+                return new ApiResponse(false, "User data is required.", 400, null);
 
-            if (result.Succeeded)
+            var user = new User
             {
-                return new ApiResponse(true, "User registered successfully", 200, null);
+                FirstName = userForRegistration.FirstName,
+                LastName = userForRegistration.LastName,
+                Email = userForRegistration.Email,
+                UserName = userForRegistration.Email // Assuming email is used as username
+            };
+            var result = await _userManager.CreateAsync(user, userForRegistration.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+
+                return new ApiResponse(false, "User registration failed: " + string.Join(", ", errors), 400, errors);
+
             }
 
-            return new ApiResponse(false, string.Join(", ", result.Errors.Select(e => e.Description)), 400, result.Errors);
+            await _userManager.AddToRoleAsync(user, "Admin");
+
+            return new ApiResponse(true, "User registered successfully", 200, null);
+
         }
 
-        public async Task<ApiResponse> Login(Login model)
+        public async Task<ApiResponse> Login(UserForAuthenticationDto userForAuthentication)
         {
-            var user = await _userManager.FindByNameAsync(model.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+            var user = await _userManager.FindByNameAsync(userForAuthentication.Email);
+            if (user is null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password!))
+                return new ApiResponse(false, "Invalid username or password", 401, null);
 
-                authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-                var token = new JwtSecurityToken(
-                    issuer: _configuration["Jwt:Issuer"],
-                    expires: DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiryMinutes"]!)),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)),
-                    SecurityAlgorithms.HmacSha256));
-
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-                return new ApiResponse(true, "Login successful", 200, new { token = tokenString });
-            }
-
-            return new ApiResponse(false, "Invalid username or password", 401, null);
-        }
-
-        public async Task<ApiResponse> AddRole(string role)
-        {
-            if (!await _roleManager.RoleExistsAsync(role))
-            {
-                var result = await _roleManager.CreateAsync(new IdentityRole(role));
-                if (result.Succeeded)
-                {
-                    return new ApiResponse(true, "Role added successfully", 200, null);
-                }
-
-                return new ApiResponse(false, string.Join(", ", result.Errors.Select(e => e.Description)), 400, result.Errors);
-            }
-
-            return new ApiResponse(false, "Role already exists", 400, null);
-        }
-
-        public async Task<ApiResponse> AssignRole(UserRole model)
-        {
-            var user = await _userManager.FindByNameAsync(model.Username);
-            if (user == null)
-            {
-                return new ApiResponse(false, "User not found", 400, null);
-            }
-
-            var result = await _userManager.AddToRoleAsync(user, model.Role);
-            if (result.Succeeded)
-            {
-                return new ApiResponse(true, "Role assigned successfully", 200, null);
-            }
-
-            return new ApiResponse(false, string.Join(", ", result.Errors.Select(e => e.Description)), 400, result.Errors);
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _jwtHandler.CreateToken(user, roles);
+            return new ApiResponse(true, "Login successful", 200, new { token = token });
         }
     }
 }
