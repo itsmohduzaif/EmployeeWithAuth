@@ -62,10 +62,6 @@ namespace HRManagement.Services
         }
         public async Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto)
         {
-            if (employeeDto == null)
-            {
-                return new ApiResponse(false, "Employee data is required.", 400, null);
-            }
 
             var user = new User
             {

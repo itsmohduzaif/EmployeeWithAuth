@@ -20,6 +20,15 @@ namespace HRManagement.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserForRegistrationDto userForRegistration)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+
             var Response = await _accountService.Register(userForRegistration);
             return Ok(Response);
         }
@@ -28,6 +37,15 @@ namespace HRManagement.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserForAuthenticationDto userForAuthentication)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+
             var Response = await _accountService.Login(userForAuthentication);
             return Ok(Response);
         }
