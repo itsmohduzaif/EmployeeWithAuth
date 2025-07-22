@@ -11,10 +11,6 @@ namespace HRManagement.Services
 {
     public class AccountService : IAccountService
     {
-        //private readonly UserManager<IdentityUser> _userManager;
-        //private readonly RoleManager<IdentityRole> _roleManager;
-        //private readonly IConfiguration _configuration;
-
         private readonly UserManager<User> _userManager;
         private readonly JwtHandler _jwtHandler;
 
@@ -47,7 +43,7 @@ namespace HRManagement.Services
 
             }
 
-            await _userManager.AddToRoleAsync(user, "Admin");
+            await _userManager.AddToRoleAsync(user, "Employee");
 
             return new ApiResponse(true, "User registered successfully", 200, null);
 
@@ -55,7 +51,7 @@ namespace HRManagement.Services
 
         public async Task<ApiResponse> Login(UserForAuthenticationDto userForAuthentication)
         {
-            var user = await _userManager.FindByNameAsync(userForAuthentication.Email);
+            var user = await _userManager.FindByEmailAsync(userForAuthentication.Email);
             if (user is null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password!))
                 return new ApiResponse(false, "Invalid username or password", 401, null);
 

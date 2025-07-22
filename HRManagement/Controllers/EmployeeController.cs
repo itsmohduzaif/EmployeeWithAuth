@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HRManagement.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
@@ -16,6 +16,8 @@ namespace HRManagement.Controllers
         {
             _employeeService = employeeService;
         }
+
+
 
         // Get https://localhost:7150/api/employee/
         [HttpGet]

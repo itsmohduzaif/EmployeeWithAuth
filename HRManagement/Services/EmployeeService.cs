@@ -1,6 +1,9 @@
 ﻿using HRManagement.Data;
 using HRManagement.DTOs;
+using HRManagement.Entities;
+using HRManagement.JwtFeatures;
 using HRManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRManagement.Services
@@ -9,10 +12,14 @@ namespace HRManagement.Services
     {
 
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly JwtHandler _jwtHandler;
 
-        public EmployeeService(AppDbContext context)
+        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler)
         {
             _context = context;
+            _userManager = userManager;
+            _jwtHandler = jwtHandler;
         }
 
         // Implement the methods defined in the IEmployeeService interface here
@@ -52,10 +59,34 @@ namespace HRManagement.Services
                 StatusCode = 200,
                 Response = employee
             };
-
         }
         public async Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto)
         {
+            if (employeeDto == null)
+            {
+                return new ApiResponse(false, "Employee data is required.", 400, null);
+            }
+
+            var user = new User
+            {
+                FirstName = employeeDto.FirstName,
+                LastName = employeeDto.LastName,
+                Email = employeeDto.Email,
+                UserName = employeeDto.Username
+            };
+
+            var result = await _userManager.CreateAsync(user, employeeDto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+
+                return new ApiResponse(false, "User registration failed: " + string.Join(", ", errors), 400, errors);
+
+            }
+
+            await _userManager.AddToRoleAsync(user, employeeDto.EmployeeRole);
+
             var employee = new Employee
             {
                 Email = employeeDto.Email,
@@ -67,10 +98,9 @@ namespace HRManagement.Services
                 CreatedBy = employeeDto.CreatedBy,
                 CreatedDate = DateTime.UtcNow,
                 ModifiedBy = employeeDto.CreatedBy,
-                ModifiedDate = DateTime.UtcNow
+                ModifiedDate = DateTime.UtcNow,
+                EmployeeRole = employeeDto.EmployeeRole
             };
-
-
 
             await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
