@@ -24,15 +24,31 @@ namespace HRManagement.Services
         public async Task<ApiResponse> UpdateGeneralSettings(GeneralSettingsDto dto)
         {
             var settings = await _context.GeneralSettings.FirstOrDefaultAsync() ?? new GeneralSettings();
+
             settings.CompanyName = dto.CompanyName;
             settings.SystemLanguage = dto.SystemLanguage;
             settings.TimeZone = dto.TimeZone;
 
-            _context.Update(settings);
+            settings.DateFormat = dto.DateFormat;
+            settings.Language = dto.Language;
+            settings.IsMaintenanceMode = dto.IsMaintenanceMode;
+
+            settings.UpdatedBy = dto.UpdatedBy;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            settings.SupportEmail = dto.SupportEmail;
+            settings.DefaultCurrency = dto.DefaultCurrency;
+
+            if (settings.Id == 0)
+                await _context.GeneralSettings.AddAsync(settings);
+            else
+                _context.GeneralSettings.Update(settings);
+
             await _context.SaveChangesAsync();
 
-            return new ApiResponse(true, "Updated", 200, settings);
+            return new ApiResponse(true, "Updated General Settings", 200, settings);
         }
+
 
         public async Task<ApiResponse> GetThemeSettings()
         {
@@ -43,15 +59,29 @@ namespace HRManagement.Services
         public async Task<ApiResponse> UpdateThemeSettings(ThemeSettingsDto dto)
         {
             var settings = await _context.ThemeSettings.FirstOrDefaultAsync() ?? new ThemeSettings();
+
             settings.ThemeColor = dto.ThemeColor;
             settings.FontFamily = dto.FontFamily;
             settings.IsDarkModeEnabled = dto.IsDarkModeEnabled;
 
-            _context.Update(settings);
+            settings.BorderRadius = dto.BorderRadius;
+
+            settings.UpdatedBy = dto.UpdatedBy;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            settings.BackgroundImageUrl = dto.BackgroundImageUrl;
+            settings.FontSize = dto.FontSize;
+
+            if (settings.Id == 0)
+                await _context.ThemeSettings.AddAsync(settings);
+            else
+                _context.ThemeSettings.Update(settings);
+
             await _context.SaveChangesAsync();
 
-            return new ApiResponse(true, "Updated", 200, settings);
+            return new ApiResponse(true, "Updated Theme Settings", 200, settings);
         }
+
 
         public async Task<ApiResponse> GetEmailSettings()
         {
@@ -71,11 +101,19 @@ namespace HRManagement.Services
             settings.Username = dto.Username;
             settings.Password = dto.Password;
 
-            _context.Update(settings);
+            settings.UpdatedBy = dto.UpdatedBy;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            if (settings.Id == 0)
+                await _context.EmailSettings.AddAsync(settings);
+            else
+                _context.EmailSettings.Update(settings);
+
             await _context.SaveChangesAsync();
 
-            return new ApiResponse(true, "Updated", 200, settings);
+            return new ApiResponse(true, "Updated Email Settings", 200, settings);
         }
+
 
         public async Task<ApiResponse> GetAllEmailTemplates()
         {
@@ -86,7 +124,7 @@ namespace HRManagement.Services
         public async Task<ApiResponse> AddOrUpdateEmailTemplate(EmailTemplateDto dto)
         {
             var existing = await _context.EmailTemplates
-                .FirstOrDefaultAsync(x => x.TemplateName == dto.TemplateName);
+                        .FirstOrDefaultAsync(x => x.TemplateName == dto.TemplateName);
 
             if (existing == null)
             {
@@ -94,19 +132,35 @@ namespace HRManagement.Services
                 {
                     TemplateName = dto.TemplateName,
                     Subject = dto.Subject,
-                    Body = dto.Body
+                    Body = dto.Body,
+
+                    Description = dto.Description,
+                    IsActive = dto.IsActive,
+
+                    UpdatedBy = dto.UpdatedBy,
+                    UpdatedAt = DateTime.UtcNow
                 };
-                _context.EmailTemplates.Add(newTemplate);
+
+                await _context.EmailTemplates.AddAsync(newTemplate);
             }
             else
             {
                 existing.Subject = dto.Subject;
                 existing.Body = dto.Body;
+
+                existing.Description = dto.Description;
+                existing.IsActive = dto.IsActive;
+
+                existing.UpdatedBy = dto.UpdatedBy;
+                existing.UpdatedAt = DateTime.UtcNow;
+
                 _context.EmailTemplates.Update(existing);
             }
 
             await _context.SaveChangesAsync();
+
             return new ApiResponse(true, "Email template saved", 200, null);
         }
+
     }
 }

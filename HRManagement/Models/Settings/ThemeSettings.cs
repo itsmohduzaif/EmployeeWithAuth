@@ -3,23 +3,18 @@
     public class ThemeSettings
     {
         public int Id { get; set; }
-        public string ThemeColor { get; set; }
-        public string FontFamily { get; set; }
-        public bool IsDarkModeEnabled { get; set; }
+
+        public string ThemeColor { get; set; } = "#000000";
+        public string FontFamily { get; set; } = "Arial";
+        public bool IsDarkModeEnabled { get; set; } = false;
+
+        public string BorderRadius { get; set; } = "4px";
+
+        public string UpdatedBy { get; set; } = string.Empty;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // Additional useful properties
+        public string BackgroundImageUrl { get; set; } = string.Empty;
+        public int FontSize { get; set; } = 14; // in px
     }
 }
-
-
-
-
-
-
-// we can add these later
-//public int Id { get; set; }
-//public string PrimaryColor { get; set; } = "#1976d2";
-//public string SecondaryColor { get; set; } = "#424242";
-//public bool IsDarkMode { get; set; }
-//public string FontFamily { get; set; } = "Roboto, sans-serif";
-//public string BorderRadius { get; set; } = "4px";
-//public string UpdatedBy { get; set; } = string.Empty;
-//public DateTime UpdatedAt { get; set; }

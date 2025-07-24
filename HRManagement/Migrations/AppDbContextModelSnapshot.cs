@@ -220,6 +220,13 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("UseSSL")
                         .HasColumnType("bit");
 
@@ -230,19 +237,6 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Password = "",
-                            Port = 587,
-                            SenderEmail = "",
-                            SenderName = "",
-                            SmtpServer = "",
-                            UseSSL = true,
-                            Username = ""
-                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.EmailTemplate", b =>
@@ -257,11 +251,25 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -282,6 +290,25 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DateFormat")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DefaultCurrency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsMaintenanceMode")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SupportEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SystemLanguage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -290,18 +317,16 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("GeneralSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CompanyName = "HR Corp",
-                            SystemLanguage = "en-US",
-                            TimeZone = "UTC"
-                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.ThemeSettings", b =>
@@ -312,9 +337,20 @@ namespace HRManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BackgroundImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BorderRadius")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FontFamily")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FontSize")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDarkModeEnabled")
                         .HasColumnType("bit");
@@ -323,18 +359,16 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("ThemeSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            FontFamily = "Arial",
-                            IsDarkModeEnabled = false,
-                            ThemeColor = "#000000"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

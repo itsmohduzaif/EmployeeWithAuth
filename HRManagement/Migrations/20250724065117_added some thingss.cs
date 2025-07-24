@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class addedsomethingss : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,6 +56,46 @@ namespace HRManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EmailSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SmtpServer = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Port = table.Column<int>(type: "int", nullable: false),
+                    UseSSL = table.Column<bool>(type: "bit", nullable: false),
+                    SenderEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SenderName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmailTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TemplateName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Subject = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailTemplates", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Employees",
                 columns: table => new
                 {
@@ -76,6 +116,48 @@ namespace HRManagement.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Employees", x => x.EmployeeId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GeneralSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SystemLanguage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TimeZone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DateFormat = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Language = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsMaintenanceMode = table.Column<bool>(type: "bit", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SupportEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DefaultCurrency = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GeneralSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ThemeSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ThemeColor = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FontFamily = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDarkModeEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    BorderRadius = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BackgroundImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FontSize = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ThemeSettings", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -252,7 +334,19 @@ namespace HRManagement.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "EmailSettings");
+
+            migrationBuilder.DropTable(
+                name: "EmailTemplates");
+
+            migrationBuilder.DropTable(
                 name: "Employees");
+
+            migrationBuilder.DropTable(
+                name: "GeneralSettings");
+
+            migrationBuilder.DropTable(
+                name: "ThemeSettings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
