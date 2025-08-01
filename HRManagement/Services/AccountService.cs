@@ -31,7 +31,8 @@ namespace HRManagement.Services
                 FirstName = userForRegistration.FirstName,
                 LastName = userForRegistration.LastName,
                 Email = userForRegistration.Email,
-                UserName = userForRegistration.Email // Assuming email is used as username
+                UserName = userForRegistration.UserName,
+                PhoneNumber = userForRegistration.PhoneNumber,
             };
             var result = await _userManager.CreateAsync(user, userForRegistration.Password);
 
@@ -43,7 +44,8 @@ namespace HRManagement.Services
 
             }
 
-            await _userManager.AddToRoleAsync(user, "Employee");
+            //await _userManager.AddToRoleAsync(user, "Employee");
+            await _userManager.AddToRoleAsync(user, userForRegistration.EmployeeRole);
 
             return new ApiResponse(true, "User registered successfully", 200, null);
 

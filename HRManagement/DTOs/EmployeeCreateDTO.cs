@@ -17,7 +17,7 @@ namespace HRManagement.DTOs
         public string? EmployeeRole { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
     }

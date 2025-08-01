@@ -68,7 +68,8 @@ namespace HRManagement.Services
                 FirstName = employeeDto.FirstName,
                 LastName = employeeDto.LastName,
                 Email = employeeDto.Email,
-                UserName = employeeDto.Username
+                UserName = employeeDto.Username,
+                PhoneNumber = employeeDto.PhoneNumber
             };
 
             var result = await _userManager.CreateAsync(user, employeeDto.Password);
@@ -89,7 +90,7 @@ namespace HRManagement.Services
                 FirstName = employeeDto.FirstName,
                 LastName = employeeDto.LastName,
                 Username = employeeDto.Username,
-                Phone = employeeDto.Phone,
+                Phone = employeeDto.PhoneNumber,
                 IsActive = employeeDto.IsActive,
                 CreatedBy = employeeDto.CreatedBy,
                 CreatedDate = DateTime.UtcNow,
