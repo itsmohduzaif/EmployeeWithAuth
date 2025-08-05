@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class addedsomethingss : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -138,6 +138,37 @@ namespace HRManagement.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_GeneralSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LeaveBalances",
+                columns: table => new
+                {
+                    LeaveBalanceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeId = table.Column<int>(type: "int", nullable: false),
+                    LeaveTypeId = table.Column<int>(type: "int", nullable: false),
+                    TotalAllocated = table.Column<int>(type: "int", nullable: false),
+                    Used = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LeaveBalances", x => x.LeaveBalanceId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LeaveTypes",
+                columns: table => new
+                {
+                    LeaveTypeId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LeaveTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LeaveTypeDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DefaultAnnualAllocation = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LeaveTypes", x => x.LeaveTypeId);
                 });
 
             migrationBuilder.CreateTable(
@@ -272,8 +303,43 @@ namespace HRManagement.Migrations
                 values: new object[,]
                 {
                     { "45deb9d6-c1ae-44a6-a03b-c9a5cfc15f2f", null, "The admin role for the user", "Admin", "ADMIN" },
-                    { "639de03f-7876-4fff-96ec-37f8bd3bf180", null, "The Employee role for the user", "Employee", "EMPLOYEE" }
+                    { "639de03f-7876-4fff-96ec-37f8bd3bf180", null, "The Employee role for the user", "Employee", "EMPLOYEE" },
+                    { "8c7768a9-f7b3-4a0a-8b45-d74e44e367af", null, "The Manager role for the user", "Manager", "MANAGER" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "EmailSettings",
+                columns: new[] { "Id", "Password", "Port", "SenderEmail", "SenderName", "SmtpServer", "UpdatedAt", "UpdatedBy", "UseSSL", "Username" },
+                values: new object[] { 1, "smtp-password", 587, "noreply@datafirstservices.com", "HRCorp", "smtp.yourhost.com", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System", true, "smtp-user" });
+
+            migrationBuilder.InsertData(
+                table: "EmailTemplates",
+                columns: new[] { "Id", "Body", "Description", "IsActive", "Subject", "TemplateName", "UpdatedAt", "UpdatedBy" },
+                values: new object[] { 1, "Hello {{FirstName}},\nWelcome onboard!", "Welcome email sent to new employees", true, "Welcome to DataFirst Services!", "WelcomeEmployee", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System" });
+
+            migrationBuilder.InsertData(
+                table: "GeneralSettings",
+                columns: new[] { "Id", "CompanyName", "DateFormat", "DefaultCurrency", "IsMaintenanceMode", "Language", "SupportEmail", "SystemLanguage", "TimeZone", "UpdatedAt", "UpdatedBy" },
+                values: new object[] { 1, "DataFirst Services", "MM/dd/yyyy", "USD", false, "English", "support@datafirstservices.com", "en-US", "UTC", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System" });
+
+            migrationBuilder.InsertData(
+                table: "LeaveTypes",
+                columns: new[] { "LeaveTypeId", "DefaultAnnualAllocation", "LeaveTypeDescription", "LeaveTypeName" },
+                values: new object[,]
+                {
+                    { 1, 20, "Paid leave for vacation or personal reasons.", "Annual Leave" },
+                    { 2, 10, "Leave granted for health-related issues.", "Sick Leave" },
+                    { 3, 90, "Leave for childbirth and recovery.", "Maternity Leave" },
+                    { 4, 15, "Leave for fathers during childbirth period.", "Paternity Leave" },
+                    { 5, 5, "Leave in case of death of a family member.", "Bereavement Leave" },
+                    { 6, 0, "Leave without salary deduction for personal matters.", "Unpaid Leave" },
+                    { 7, 0, "Leave earned by working extra hours or holidays.", "Compensatory Leave" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ThemeSettings",
+                columns: new[] { "Id", "BackgroundImageUrl", "BorderRadius", "FontFamily", "FontSize", "IsDarkModeEnabled", "ThemeColor", "UpdatedAt", "UpdatedBy" },
+                values: new object[] { 1, "", "4px", "Arial", 14, false, "#000000", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -344,6 +410,12 @@ namespace HRManagement.Migrations
 
             migrationBuilder.DropTable(
                 name: "GeneralSettings");
+
+            migrationBuilder.DropTable(
+                name: "LeaveBalances");
+
+            migrationBuilder.DropTable(
+                name: "LeaveTypes");
 
             migrationBuilder.DropTable(
                 name: "ThemeSettings");

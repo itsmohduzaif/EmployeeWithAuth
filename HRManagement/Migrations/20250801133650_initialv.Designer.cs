@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250724065117_added some thingss")]
-    partial class addedsomethingss
+    [Migration("20250801133650_initialv")]
+    partial class initialv
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,6 +68,13 @@ namespace HRManagement.Migrations
                             Description = "The admin role for the user",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "8c7768a9-f7b3-4a0a-8b45-d74e44e367af",
+                            Description = "The Manager role for the user",
+                            Name = "Manager",
+                            NormalizedName = "MANAGER"
                         });
                 });
 
@@ -194,6 +201,183 @@ namespace HRManagement.Migrations
                     b.HasKey("EmployeeId");
 
                     b.ToTable("Employees");
+
+                    b.HasData(
+                        new
+                        {
+                            EmployeeId = 1,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "amit.sharma@datafirst.com",
+                            EmployeeRole = "Software Engineer",
+                            FirstName = "Amit",
+                            IsActive = true,
+                            LastName = "Sharma",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Phone = "9876543210",
+                            Username = "amit.sharma"
+                        },
+                        new
+                        {
+                            EmployeeId = 2,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 6, 18, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "nisha.verma@datafirst.com",
+                            EmployeeRole = "QA Analyst",
+                            FirstName = "Nisha",
+                            IsActive = true,
+                            LastName = "Verma",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Phone = "9898989898",
+                            Username = "nisha.verma"
+                        },
+                        new
+                        {
+                            EmployeeId = 3,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "rahul.kumar@datafirst.com",
+                            EmployeeRole = "HR Executive",
+                            FirstName = "Rahul",
+                            IsActive = false,
+                            LastName = "Kumar",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 5, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Phone = "9123456789",
+                            Username = "rahul.kumar"
+                        },
+                        new
+                        {
+                            EmployeeId = 4,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "pooja.mehta@datafirst.com",
+                            EmployeeRole = "Project Manager",
+                            FirstName = "Pooja",
+                            IsActive = true,
+                            LastName = "Mehta",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Phone = "9911223344",
+                            Username = "pooja.mehta"
+                        },
+                        new
+                        {
+                            EmployeeId = 5,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "vikram.singh@datafirst.com",
+                            EmployeeRole = "UI/UX Designer",
+                            FirstName = "Vikram",
+                            IsActive = true,
+                            LastName = "Singh",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Phone = "9001234567",
+                            Username = "vikram.singh"
+                        });
+                });
+
+            modelBuilder.Entity("HRManagement.Models.Leaves.LeaveBalance", b =>
+                {
+                    b.Property<int>("LeaveBalanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaveBalanceId"));
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalAllocated")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("int");
+
+                    b.HasKey("LeaveBalanceId");
+
+                    b.ToTable("LeaveBalances");
+                });
+
+            modelBuilder.Entity("HRManagement.Models.Leaves.LeaveType", b =>
+                {
+                    b.Property<int>("LeaveTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaveTypeId"));
+
+                    b.Property<int>("DefaultAnnualAllocation")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LeaveTypeDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LeaveTypeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LeaveTypeId");
+
+                    b.ToTable("LeaveTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            LeaveTypeId = 1,
+                            DefaultAnnualAllocation = 20,
+                            LeaveTypeDescription = "Paid leave for vacation or personal reasons.",
+                            LeaveTypeName = "Annual Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 2,
+                            DefaultAnnualAllocation = 10,
+                            LeaveTypeDescription = "Leave granted for health-related issues.",
+                            LeaveTypeName = "Sick Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 3,
+                            DefaultAnnualAllocation = 90,
+                            LeaveTypeDescription = "Leave for childbirth and recovery.",
+                            LeaveTypeName = "Maternity Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 4,
+                            DefaultAnnualAllocation = 15,
+                            LeaveTypeDescription = "Leave for fathers during childbirth period.",
+                            LeaveTypeName = "Paternity Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 5,
+                            DefaultAnnualAllocation = 5,
+                            LeaveTypeDescription = "Leave in case of death of a family member.",
+                            LeaveTypeName = "Bereavement Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 6,
+                            DefaultAnnualAllocation = 0,
+                            LeaveTypeDescription = "Leave without salary deduction for personal matters.",
+                            LeaveTypeName = "Unpaid Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 7,
+                            DefaultAnnualAllocation = 0,
+                            LeaveTypeDescription = "Leave earned by working extra hours or holidays.",
+                            LeaveTypeName = "Compensatory Leave"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.EmailSettings", b =>
@@ -240,6 +424,21 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Password = "smtp-password",
+                            Port = 587,
+                            SenderEmail = "noreply@datafirstservices.com",
+                            SenderName = "HRCorp",
+                            SmtpServer = "smtp.yourhost.com",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System",
+                            UseSSL = true,
+                            Username = "smtp-user"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.EmailTemplate", b =>
@@ -279,6 +478,19 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailTemplates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Body = "Hello {{FirstName}},\nWelcome onboard!",
+                            Description = "Welcome email sent to new employees",
+                            IsActive = true,
+                            Subject = "Welcome to DataFirst Services!",
+                            TemplateName = "WelcomeEmployee",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.GeneralSettings", b =>
@@ -330,6 +542,22 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GeneralSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CompanyName = "DataFirst Services",
+                            DateFormat = "MM/dd/yyyy",
+                            DefaultCurrency = "USD",
+                            IsMaintenanceMode = false,
+                            Language = "English",
+                            SupportEmail = "support@datafirstservices.com",
+                            SystemLanguage = "en-US",
+                            TimeZone = "UTC",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.ThemeSettings", b =>
@@ -372,6 +600,20 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ThemeSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BackgroundImageUrl = "",
+                            BorderRadius = "4px",
+                            FontFamily = "Arial",
+                            FontSize = 14,
+                            IsDarkModeEnabled = false,
+                            ThemeColor = "#000000",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250801090605_seeded master data for Manager role")]
-    partial class seededmasterdataforManagerrole
+    [Migration("20250801132807_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -203,6 +203,106 @@ namespace HRManagement.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("HRManagement.Models.Leaves.LeaveBalance", b =>
+                {
+                    b.Property<int>("LeaveBalanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaveBalanceId"));
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalAllocated")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("int");
+
+                    b.HasKey("LeaveBalanceId");
+
+                    b.ToTable("LeaveBalances");
+                });
+
+            modelBuilder.Entity("HRManagement.Models.Leaves.LeaveType", b =>
+                {
+                    b.Property<int>("LeaveTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaveTypeId"));
+
+                    b.Property<int>("DefaultAnnualAllocation")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LeaveTypeDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LeaveTypeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LeaveTypeId");
+
+                    b.ToTable("LeaveTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            LeaveTypeId = 1,
+                            DefaultAnnualAllocation = 20,
+                            LeaveTypeDescription = "Paid leave for vacation or personal reasons.",
+                            LeaveTypeName = "Annual Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 2,
+                            DefaultAnnualAllocation = 10,
+                            LeaveTypeDescription = "Leave granted for health-related issues.",
+                            LeaveTypeName = "Sick Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 3,
+                            DefaultAnnualAllocation = 90,
+                            LeaveTypeDescription = "Leave for childbirth and recovery.",
+                            LeaveTypeName = "Maternity Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 4,
+                            DefaultAnnualAllocation = 15,
+                            LeaveTypeDescription = "Leave for fathers during childbirth period.",
+                            LeaveTypeName = "Paternity Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 5,
+                            DefaultAnnualAllocation = 5,
+                            LeaveTypeDescription = "Leave in case of death of a family member.",
+                            LeaveTypeName = "Bereavement Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 6,
+                            DefaultAnnualAllocation = 0,
+                            LeaveTypeDescription = "Leave without salary deduction for personal matters.",
+                            LeaveTypeName = "Unpaid Leave"
+                        },
+                        new
+                        {
+                            LeaveTypeId = 7,
+                            DefaultAnnualAllocation = 0,
+                            LeaveTypeDescription = "Leave earned by working extra hours or holidays.",
+                            LeaveTypeName = "Compensatory Leave"
+                        });
+                });
+
             modelBuilder.Entity("HRManagement.Models.Settings.EmailSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -247,6 +347,21 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Password = "smtp-password",
+                            Port = 587,
+                            SenderEmail = "noreply@datafirstservices.com",
+                            SenderName = "HRCorp",
+                            SmtpServer = "smtp.yourhost.com",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System",
+                            UseSSL = true,
+                            Username = "smtp-user"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.EmailTemplate", b =>
@@ -286,6 +401,19 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailTemplates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Body = "Hello {{FirstName}},\nWelcome onboard!",
+                            Description = "Welcome email sent to new employees",
+                            IsActive = true,
+                            Subject = "Welcome to DataFirst Services!",
+                            TemplateName = "WelcomeEmployee",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.GeneralSettings", b =>
@@ -337,6 +465,22 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GeneralSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CompanyName = "DataFirst Services",
+                            DateFormat = "MM/dd/yyyy",
+                            DefaultCurrency = "USD",
+                            IsMaintenanceMode = false,
+                            Language = "English",
+                            SupportEmail = "support@datafirstservices.com",
+                            SystemLanguage = "en-US",
+                            TimeZone = "UTC",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Settings.ThemeSettings", b =>
@@ -379,6 +523,20 @@ namespace HRManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ThemeSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BackgroundImageUrl = "",
+                            BorderRadius = "4px",
+                            FontFamily = "Arial",
+                            FontSize = 14,
+                            IsDarkModeEnabled = false,
+                            ThemeColor = "#000000",
+                            UpdatedAt = new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

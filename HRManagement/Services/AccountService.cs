@@ -32,7 +32,7 @@ namespace HRManagement.Services
                 LastName = userForRegistration.LastName,
                 Email = userForRegistration.Email,
                 UserName = userForRegistration.UserName,
-                PhoneNumber = userForRegistration.PhoneNumber,
+                PhoneNumber = userForRegistration.PhoneNumber
             };
             var result = await _userManager.CreateAsync(user, userForRegistration.Password);
 

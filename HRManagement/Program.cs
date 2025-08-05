@@ -3,6 +3,7 @@ using HRManagement.Entities;
 using HRManagement.ExceptionHandlers;
 using HRManagement.JwtFeatures;
 using HRManagement.Services;
+using HRManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,11 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
+builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
+builder.Services.AddScoped<ILeaveBalanceService, LeaveBalanceService>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -45,8 +51,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<User, Role>(opt =>
 {
     opt.Password.RequiredLength = 7;
-    opt.Password.RequireDigit = false;
-    opt.Password.RequireUppercase = false;
+    opt.Password.RequireDigit = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequireLowercase = true;
+    opt.Password.RequireNonAlphanumeric = true;
+    opt.User.RequireUniqueEmail = true;
+    opt.Password.RequiredUniqueChars = 4;
 })
         .AddEntityFrameworkStores<AppDbContext>();
 
