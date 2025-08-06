@@ -21,7 +21,6 @@ namespace HRManagement.Data
         public DbSet<EmailSettings> EmailSettings { get; set; }
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
         public DbSet<LeaveType> LeaveTypes { get; set; }
-        public DbSet<LeaveBalance> LeaveBalances { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -29,8 +28,7 @@ namespace HRManagement.Data
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new RoleConfiguration());
             builder.ApplyConfiguration(new LeaveTypeConfiguration());
-            builder.ApplyConfiguration(new EmployeeConfiguration());
-            builder.ApplyConfiguration(new LeaveBalanceConfiguration());
+            //builder.ApplyConfiguration(new EmployeeConfiguration());
 
             builder.ApplyConfiguration(new GeneralSettingsConfiguration());
             builder.ApplyConfiguration(new ThemeSettingsConfiguration());

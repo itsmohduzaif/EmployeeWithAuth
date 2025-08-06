@@ -2,10 +2,6 @@
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace HRManagement.Services
 {
@@ -55,7 +51,7 @@ namespace HRManagement.Services
         {
             var user = await _userManager.FindByEmailAsync(userForAuthentication.Email);
             if (user is null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password!))
-                return new ApiResponse(false, "Invalid username or password", 401, null);
+                return new ApiResponse(false, "Invalid email or password", 401, null);
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwtHandler.CreateToken(user, roles);

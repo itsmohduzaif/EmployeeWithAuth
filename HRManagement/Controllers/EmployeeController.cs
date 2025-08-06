@@ -1,6 +1,5 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRManagement.Controllers
