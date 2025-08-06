@@ -7,13 +7,13 @@ namespace HRManagement.Services.Interfaces
     public interface ILeaveRequestService
     {
         // User endpoints
-        Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(int employeeId);
-        Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto);
-        Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto);
+        Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim);
+        Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto, string usernameFromClaim);
+        Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim);
 
         // Manager endpoints
-        Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto, int managerId);
-        Task<ApiResponse> GetPendingLeaveRequestsForManagerAsync(int managerId); // managerId could be fetched through context
-        Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto, int managerId);
+        Task<ApiResponse> GetPendingLeaveRequests();
+        Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto);
+        Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto);
     }
 }

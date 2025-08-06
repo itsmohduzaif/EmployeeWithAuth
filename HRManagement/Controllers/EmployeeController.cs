@@ -53,6 +53,7 @@ namespace HRManagement.Controllers
             return Ok(Response);
         }
 
+
         // PUT  https://localhost:7150/api/employee/
         [HttpPut]
         public async Task<IActionResult> UpdateEmployee(EmployeeUpdateDTO updated)

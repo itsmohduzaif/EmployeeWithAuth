@@ -2,10 +2,14 @@
 using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
+using HRManagement.Entities;
 using HRManagement.Enums;
 using HRManagement.Models.Leaves;
 using HRManagement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using HRManagement.JwtFeatures;
+using Microsoft.AspNetCore.Identity;
 
 namespace HRManagement.Services
 {
@@ -19,16 +23,26 @@ namespace HRManagement.Services
         }
 
         // Get all leave requests for one employee
-        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(int employeeId)
+        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim)
         {
+
+            // Getting the employee from usernameFromClaim 
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
+            }
+
+
+
             //var leaveRequests = await _context.LeaveRequests.FirstOrDefaultAsync(r => r.EmployeeId == employeeId);
             var leaveRequests = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == employeeId)
+                .Where(r => r.EmployeeId == employee.EmployeeId)
                 .OrderByDescending(r => r.RequestedOn)
                 .ToListAsync();
 
 
-            if (leaveRequests == null)             
+            if (leaveRequests.Count == 0)             
             {
                 return new ApiResponse(false, "No leave requests found for this employee.", 404, null);
             }
@@ -39,15 +53,23 @@ namespace HRManagement.Services
 
 
         //Create leave request(validation: overlapping/available balance)
-        public async Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto)
+        public async Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto, string usernameFromClaim)
         {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
+            }
+
+            int EmployeeId = employee.EmployeeId;
+
             // Validate dates
             if (dto.EndDate < dto.StartDate)
                 return new ApiResponse(false, "End date can't be before start date.", 400, null);
 
             // Check for overlapping requests for this employee and leave type (Pending or Approved only)
             var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
-                r.EmployeeId == dto.EmployeeId &&
+                r.EmployeeId == EmployeeId &&
                 r.LeaveTypeId == dto.LeaveTypeId &&
                 r.Status != LeaveRequestStatus.Rejected &&
                 ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
@@ -76,7 +98,7 @@ namespace HRManagement.Services
 
             var leaveRequest = new LeaveRequest
             {
-                EmployeeId = dto.EmployeeId,
+                EmployeeId = EmployeeId,
                 LeaveTypeId = dto.LeaveTypeId,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
@@ -93,12 +115,25 @@ namespace HRManagement.Services
         }
 
         // Employee can update their own request if pending
-        public async Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto)
+        public async Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim)
         {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
+            }
+
+
             var req = await _context.LeaveRequests.FindAsync(requestId);
-            if (req == null) return new ApiResponse(false, "Request not found.", 404, null);
-            if (req.Status != LeaveRequestStatus.Pending)
+            if (req == null) {
+                return new ApiResponse(false, "Request not found.", 404, null);
+            }
+            if (req.EmployeeId != employee.EmployeeId) { 
+                return new ApiResponse(false, "You can only update your own requests.", 403, null);
+            }
+            if (req.Status != LeaveRequestStatus.Pending) {
                 return new ApiResponse(false, "Can only modify pending requests.", 400, null);
+            }
 
             // Optionally: again check overlaps if Start/EndDate changed
             req.StartDate = dto.StartDate;
@@ -111,8 +146,8 @@ namespace HRManagement.Services
 
 
 
-        //Get all pending leave requests for manager's reportees (implement your own logic for manager-employee relationship)
-        public async Task<ApiResponse> GetPendingLeaveRequestsForManagerAsync(int managerId)
+        //Get all pending leave requests 
+        public async Task<ApiResponse> GetPendingLeaveRequests()
         {
             // For demo: fetch all pending (customize with your reporting structure)
             var pending = await _context.LeaveRequests
@@ -127,7 +162,7 @@ namespace HRManagement.Services
 
 
         // Manager approves and actioned/updates the leave balance
-        public async Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto, int managerId)
+        public async Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto)
         {
             var req = await _context.LeaveRequests.FindAsync(requestId);
             if (req == null) return new ApiResponse(false, "Request not found.", 404, null);
@@ -160,7 +195,7 @@ namespace HRManagement.Services
             return new ApiResponse(true, "Leave approved and balance updated.", 200, req);
         }
 
-        public async Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto, int managerId)
+        public async Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto)
         {
             var req = await _context.LeaveRequests.FindAsync(requestId);
             if (req == null) return new ApiResponse(false, "Request not found.", 404, null);

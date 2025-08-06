@@ -1,8 +1,10 @@
-﻿namespace HRManagement.DTOs.Leaves.LeaveRequest
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HRManagement.DTOs.Leaves.LeaveRequest
 {
     public class RejectLeaveRequestDto
     {
-        public string? ManagerRemarks { get; set; }
+        [Required(ErrorMessage = "Manager remarks are required for rejection.")]
+        public string ManagerRemarks { get; set; } = string.Empty;
     }
-
 }

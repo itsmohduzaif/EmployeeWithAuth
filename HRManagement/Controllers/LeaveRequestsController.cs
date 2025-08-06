@@ -2,7 +2,9 @@
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
 using HRManagement.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace HRManagement.Controllers
 {
@@ -18,50 +20,97 @@ namespace HRManagement.Controllers
         }
 
         // Employee endpoints
-        [HttpGet("employee/{employeeId}")]
-        public async Task<IActionResult> GetLeaveRequestsForEmployee(int employeeId)
+
+        [Authorize]
+        [HttpGet("employee")]
+        public async Task<IActionResult> GetLeaveRequestsForEmployee()
         {
-            var Response = await _leaveRequestService.GetLeaveRequestsForEmployeeAsync(employeeId);
+            //string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);   // Not using it for now (guid id)
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var Response = await _leaveRequestService.GetLeaveRequestsForEmployeeAsync(usernameFromClaim);
             return Ok(Response);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateLeaveRequest([FromBody] CreateLeaveRequestDto dto)
         {
-            var response = await _leaveRequestService.CreateLeaveRequestAsync(dto);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var response = await _leaveRequestService.CreateLeaveRequestAsync(dto, usernameFromClaim);
             return StatusCode(response.StatusCode, response);
         }
 
+        [Authorize]
         [HttpPut("{requestId}")]
         public async Task<IActionResult> UpdateLeaveRequest(int requestId, [FromBody] UpdateLeaveRequestDto dto)
         {
-            var response = await _leaveRequestService.UpdateLeaveRequestAsync(requestId, dto);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var response = await _leaveRequestService.UpdateLeaveRequestAsync(requestId, dto, usernameFromClaim);
             return StatusCode(response.StatusCode, response);
         }
 
 
         // Manager endpoints
+
+
+        [Authorize(Roles = "Manager,Admin")]
+        [HttpGet("pendingleaverequests")]
+        public async Task<IActionResult> GetPendingLeaveRequests()
+        {
+            var response = await _leaveRequestService.GetPendingLeaveRequests();
+            return StatusCode(response.StatusCode, response);
+        }
+
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPut("{requestId}/approve")]
-        public async Task<IActionResult> ApproveLeaveRequest(int requestId, [FromBody] ApproveLeaveRequestDto dto, [FromQuery] int managerId)
+        public async Task<IActionResult> ApproveLeaveRequest(int requestId, [FromBody] ApproveLeaveRequestDto dto)
         {
-            var response = await _leaveRequestService.ApproveLeaveRequestAsync(requestId, dto, managerId);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+            var response = await _leaveRequestService.ApproveLeaveRequestAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
 
-
-        
-        [HttpGet("manager/{managerId}")]
-        public async Task<IActionResult> GetPendingLeaveRequestsForManager(int managerId)
-        {
-            var response = await _leaveRequestService.GetPendingLeaveRequestsForManagerAsync(managerId);
-            return StatusCode(response.StatusCode, response);
-        }
-
-
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPut("{requestId}/reject")]
-        public async Task<IActionResult> RejectLeaveRequest(int requestId, [FromBody] RejectLeaveRequestDto dto, [FromQuery] int managerId)
+        public async Task<IActionResult> RejectLeaveRequest(int requestId, [FromBody] RejectLeaveRequestDto dto)
         {
-            var response = await _leaveRequestService.RejectLeaveRequestAsync(requestId, dto, managerId);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+            var response = await _leaveRequestService.RejectLeaveRequestAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
     }

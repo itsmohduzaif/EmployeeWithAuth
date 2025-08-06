@@ -49,21 +49,5 @@ namespace HRManagement.Controllers
             var Response = await _accountService.Login(userForAuthentication);
             return Ok(Response);
         }
-
-        //// POST https://localhost:7150/api/Account/add-role
-        //[HttpPost("add-role")]
-        //public async Task<IActionResult> AddRole([FromBody] string role)
-        //{
-        //    var Response = await _accountService.AddRole(role);
-        //    return Ok(Response);
-        //}
-
-        //// POST https://localhost:7150/api/Account/assign-role
-        //[HttpPost("assign-role")]
-        //public async Task<IActionResult> AssignRole([FromBody] UserRole model)
-        //{
-        //    var Response = await _accountService.AssignRole(model);
-        //    return Ok(Response);
-        //}
     }
 }
