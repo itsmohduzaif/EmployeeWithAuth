@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace HRManagement.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -18,6 +19,8 @@ namespace HRManagement.Controllers
             _accountService = accountService;
         }
 
+
+        // User Register (for testing only without auth)
         // POST https://localhost:7150/api/Account/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserForRegistrationDto userForRegistration)

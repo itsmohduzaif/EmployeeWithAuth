@@ -110,8 +110,10 @@ namespace HRManagement.Services
                 Response = employee
             };
         }
+
         public async Task<ApiResponse> UpdateEmployee(EmployeeUpdateDTO updated)
         {
+            // Find employee in HRManagement.Employees table
             var employee = await _context.Employees.FindAsync(updated.EmployeeId);
             if (employee == null)
             {
@@ -122,9 +124,23 @@ namespace HRManagement.Services
                     StatusCode = 404,
                     Response = null
                 };
-
             }
 
+            // Also find corresponding Identity User
+            var user = await _userManager.FindByEmailAsync(employee.Email);
+
+            if (user == null)
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Employee's linked user account not found",
+                    StatusCode = 404,
+                    Response = null
+                };
+            }
+
+            // Update Employee table
             employee.FirstName = updated.FirstName;
             employee.LastName = updated.LastName;
             employee.Email = updated.Email;
@@ -134,16 +150,45 @@ namespace HRManagement.Services
             employee.ModifiedBy = updated.ModifiedBy;
             employee.ModifiedDate = DateTime.UtcNow;
 
+            // Update Users table
+            user.FirstName = updated.FirstName;
+            user.LastName = updated.LastName;
+            user.Email = updated.Email;
+            user.UserName = updated.Username;
+            user.PhoneNumber = updated.Phone;
+            
+
+            // Save changes to both tables
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                // Collect the identity errors
+                var errors = result.Errors.Select(e => e.Description).ToList();
+
+                // Return failure response
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "User update failed: " + string.Join(", ", errors),
+                    StatusCode = 400,
+                    Response = errors
+                };
+            }
+
+
             await _context.SaveChangesAsync();
 
             return new ApiResponse
             {
                 IsSuccess = true,
-                Message = "Employee updated successfully",
+                Message = "Employee and linked user updated successfully",
                 StatusCode = 200,
                 Response = employee
             };
         }
+
         public async Task<ApiResponse> DeleteEmployee(int id)
         {
             var employee = await _context.Employees.FindAsync(id);
@@ -156,6 +201,24 @@ namespace HRManagement.Services
                     StatusCode = 404,
                     Response = null
                 };
+            }
+
+            var user = await _userManager.FindByEmailAsync(employee.Email);
+
+            if (user != null)
+            {
+                var userDeleteResult = await _userManager.DeleteAsync(user);
+                if (!userDeleteResult.Succeeded)
+                {
+                    var errors = userDeleteResult.Errors.Select(e => e.Description).ToList();
+                    return new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Failed to delete linked user account: " + string.Join(", ", errors),
+                        StatusCode = 400,
+                        Response = errors
+                    };
+                }
             }
 
             _context.Employees.Remove(employee);
