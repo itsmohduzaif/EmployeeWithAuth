@@ -145,6 +145,61 @@ namespace HRManagement.Services
         }
 
 
+        public async Task<ApiResponse> CancelLeaveRequestAsync(int requestId, string usernameFromClaim)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
+            }
+
+            var request = await _context.LeaveRequests.FindAsync(requestId);
+            if (request == null || request.EmployeeId != employee.EmployeeId)
+                return new ApiResponse(false, "Leave request not found or access denied.", 403, null);
+
+            if (request.Status != LeaveRequestStatus.Pending)
+                return new ApiResponse(false, "Only pending requests can be withdrawn.", 400, null);
+
+            request.Status = LeaveRequestStatus.Cancelled;
+            request.ActionedOn = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return new ApiResponse(true, "Leave request withdrawn successfully.", 200, request);
+        }
+
+
+
+
+
+
+
+
+
+        // Manager approves and actioned/updates the leave balance
+
+
+        public async Task<ApiResponse> GetAllLeaveRequestsAsync()
+        {
+            //var allRequests = await _context.LeaveRequests
+            //    .Include(r => r.Employee)       // Optional: to include employee details
+            //    .Include(r => r.LeaveType)      // Optional: to include leave type
+            //    .OrderByDescending(r => r.RequestedOn)
+            //    .ToListAsync();
+
+            var allRequests = await _context.LeaveRequests
+                .OrderByDescending(r => r.RequestedOn)
+                .ToListAsync();
+
+
+            if (!allRequests.Any())
+            {
+                return new ApiResponse(false, "No leave requests found.", 404, null);
+            }
+
+            return new ApiResponse(true, "All leave requests fetched successfully.", 200, allRequests);
+        }
+
+
 
         //Get all pending leave requests 
         public async Task<ApiResponse> GetPendingLeaveRequests()
@@ -158,10 +213,8 @@ namespace HRManagement.Services
             return new ApiResponse(true, "Pending requests fetched.", 200, pending);
         }
 
-        
 
 
-        // Manager approves and actioned/updates the leave balance
         public async Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto)
         {
             var req = await _context.LeaveRequests.FindAsync(requestId);

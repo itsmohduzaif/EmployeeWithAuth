@@ -69,8 +69,27 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
+        [Authorize]
+        [HttpPut("{requestId}/cancel")]
+        public async Task<IActionResult> CancelLeaveRequest(int requestId)
+        {
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var response = await _leaveRequestService.CancelLeaveRequestAsync(requestId, usernameFromClaim);
+            return StatusCode(response.StatusCode, response);
+        }
+
+
 
         // Manager endpoints
+
+        [Authorize(Roles = "Manager,Admin")]
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllLeaveRequests()
+        {
+            var response = await _leaveRequestService.GetAllLeaveRequestsAsync();
+            return StatusCode(response.StatusCode, response);
+        }
 
 
         [Authorize(Roles = "Manager,Admin")]

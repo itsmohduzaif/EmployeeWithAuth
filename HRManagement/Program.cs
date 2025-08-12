@@ -2,6 +2,7 @@ using HRManagement.Data;
 using HRManagement.Entities;
 using HRManagement.ExceptionHandlers;
 using HRManagement.JwtFeatures;
+using HRManagement.Models;
 using HRManagement.Services;
 using HRManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Configuration;
 using System.Text;
 
 
@@ -43,6 +45,8 @@ builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 
 
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -57,7 +61,8 @@ builder.Services.AddIdentity<User, Role>(opt =>
     opt.User.RequireUniqueEmail = true;
     opt.Password.RequiredUniqueChars = 4;
 })
-        .AddEntityFrameworkStores<AppDbContext>();
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();   // Adding this for token genration in forgot password
 
 var jwtSettings = builder.Configuration.GetSection("JWTSettings");
 builder.Services.AddAuthentication(options =>

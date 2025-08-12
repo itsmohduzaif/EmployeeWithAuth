@@ -10,8 +10,10 @@ namespace HRManagement.Services.Interfaces
         Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim);
         Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto, string usernameFromClaim);
         Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim);
+        Task<ApiResponse> CancelLeaveRequestAsync(int requestId, string usernameFromClaim);
 
         // Manager endpoints
+        Task<ApiResponse> GetAllLeaveRequestsAsync();
         Task<ApiResponse> GetPendingLeaveRequests();
         Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto);
         Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto);

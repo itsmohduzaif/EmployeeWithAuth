@@ -1,6 +1,8 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace HRManagement.Controllers
 {
@@ -49,5 +51,41 @@ namespace HRManagement.Controllers
             var Response = await _accountService.Login(userForAuthentication);
             return Ok(Response);
         }
+
+
+        // POST: api/Account/forgot-password
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            Console.WriteLine("Inside forgot password");
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+
+            var response = await _accountService.ForgotPasswordAsync(dto);
+            return Ok(response);
+        }
+
+        [Authorize]
+        // POST: api/Account/change-password
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var response = await _accountService.ChangePasswordAsync(dto, usernameFromClaim);
+            return Ok(response);
+        }
+
+        //
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var Response = await _accountService.ResetPasswordAsync(dto);
+            return StatusCode(Response.StatusCode, Response);
+        }
+
     }
 }

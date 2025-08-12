@@ -26,13 +26,19 @@ namespace HRManagement.SeedConfiguration
                 },
                 new Role
                 {
-                    Id = "8c7768a9-f7b3-4a0a-8b45-d74e44e367af", 
+                    Id = "8c7768a9-f7b3-4a0a-8b45-d74e44e367af",
                     Name = "Manager",
                     NormalizedName = "MANAGER",
                     Description = "The Manager role for the user"
-                }   
+                },
+                new Role
+                {
+                    Id = "e1a1247c-7d96-4ac5-a2e4-7d5fe5fae6e7",
+                    Name = "Hr",
+                    NormalizedName = "HR",
+                    Description = "The HR role for the user"
+                }
             );
-
         }
     }
 }
