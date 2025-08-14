@@ -1,4 +1,5 @@
 using HRManagement.Data;
+using HRManagement.DTOs;
 using HRManagement.Entities;
 using HRManagement.ExceptionHandlers;
 using HRManagement.JwtFeatures;
@@ -24,6 +25,23 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
+// Will upgrade the whole project later to follow this ApiBehaviour (need to deete existing modelstate)
+// th ehttps://www.perplexity.ai/search/using-hrmanagement-dtos-using-gTBta5m1Q9GFRLoSOlX7xA
+//builder.Services.Configure<ApiBehaviorOptions>(options =>
+//{
+//    options.InvalidModelStateResponseFactory = context =>
+//    {
+//        var errors = context.ModelState.Values
+//            .SelectMany(v => v.Errors)
+//            .Select(e => e.ErrorMessage)
+//            .ToList();
+
+//        var response = new ApiResponse(false, "Body Validation failed", 400, errors);
+//        return new BadRequestObjectResult(response);
+//    };
+//});
+
 
 
 
@@ -82,6 +100,27 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = jwtSettings["ValidAudience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.GetSection("SecretKey").Value))
         };
+
+        // Custom error events adding for custom response of 401 and 403 status codes
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                var apiResponse = new ApiResponse(false, "Unauthorized", 401, null);
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(apiResponse);
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                var apiResponse = new ApiResponse(false, "Forbidden", 403, null);
+                return context.Response.WriteAsJsonAsync(apiResponse);
+            }
+        };
+
     });
 
 
