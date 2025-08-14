@@ -1,4 +1,4 @@
-﻿using HRManagement.Data;
+﻿    using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
@@ -14,12 +14,13 @@ namespace HRManagement.Services
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly JwtHandler _jwtHandler;
-
-        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler)
+        private readonly BlobStorageService _blobStorageService;
+        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService)
         {
             _context = context;
             _userManager = userManager;
             _jwtHandler = jwtHandler;
+            _blobStorageService = blobStorageService;
         }
 
         // Implement the methods defined in the IEmployeeService interface here
@@ -221,6 +222,24 @@ namespace HRManagement.Services
                 }
             }
 
+
+            // Delete profile picture blob if exists
+            if (!string.IsNullOrEmpty(employee.ProfilePictureFileName))
+            {
+                try
+                {
+                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName);
+                }
+                catch (Exception ex)
+                {
+                    // Log exception, continue without blocking upload
+                    // e.g., _logger.LogWarning($"Failed to delete old profile picture blob: {ex.Message}");
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+
+
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
 
@@ -232,5 +251,152 @@ namespace HRManagement.Services
                 Response = employee
             };
         }
+
+        public async Task<ApiResponse> UpdateProfileAsync(string usernameFromClaim, EmployeeProfileUpdateDTO profileUpdateDto)
+        {
+            // Find user by username
+            var user = await _userManager.FindByNameAsync(usernameFromClaim);
+            if (user == null)
+                return new ApiResponse(false, "User not found", 404, null);
+
+            // Find related employee record by email or username
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+                return new ApiResponse(false, "Employee profile not found", 404, null);
+
+            // Update UserManager user fields
+            user.FirstName = profileUpdateDto.FirstName;
+            user.LastName = profileUpdateDto.LastName;
+            user.PhoneNumber = profileUpdateDto.Phone;
+            user.UserName = profileUpdateDto.Username;
+            user.Email = profileUpdateDto.Email;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return new ApiResponse(false, "User update failed: " + string.Join(", ", errors), 400, errors);
+            }
+
+            // Update Employee table fields
+            employee.FirstName = profileUpdateDto.FirstName;
+            employee.LastName = profileUpdateDto.LastName;
+            employee.Phone = profileUpdateDto.Phone;
+            employee.Username = profileUpdateDto.Username;
+            employee.Email = profileUpdateDto.Email;
+            employee.ModifiedBy = $"{user.FirstName} {user.LastName}";
+            employee.ModifiedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return new ApiResponse(true, "Profile updated successfully", 200, employee);
+        }
+
+
+        public async Task<ApiResponse> UploadProfilePictureAsync(string usernameFromClaim, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return new ApiResponse(false, "No file provided", 400, null);
+
+
+            // Validate file extension and content type
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            Console.WriteLine($"\n\n\n\n\nThe file extension is: {fileExtension}");
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return new ApiResponse(false, "Only JPG, JPEG and PNG image formats are allowed", 400, null);
+            }
+
+
+
+            Console.WriteLine($"\n\n\n\n\nThe file content type in lowercase is: {file.ContentType.ToLower()}");
+            if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
+            {
+                return new ApiResponse(false, "Only JPG and PNG image formats are allowed", 400, null);
+            }
+
+
+
+
+            var user = await _userManager.FindByNameAsync(usernameFromClaim);
+            if (user == null)
+                return new ApiResponse(false, "User not found", 404, null);
+
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+                return new ApiResponse(false, "Employee profile not found", 404, null);
+
+            // Delete old profile picture blob if exists
+            if (!string.IsNullOrEmpty(employee.ProfilePictureFileName))
+            {
+                try
+                {
+                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName);
+                }
+                catch (Exception ex)
+                {
+                    // Log exception, continue without blocking upload
+                    // e.g., _logger.LogWarning($"Failed to delete old profile picture blob: {ex.Message}");
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+
+            string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName);
+
+            employee.ProfilePictureFileName = blobName;
+            employee.ModifiedBy = usernameFromClaim;
+            employee.ModifiedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return new ApiResponse(true, "Profile picture uploaded successfully", 200, new { PictureBlobName = blobName });
+        }
+
+
+        public async Task<ApiResponse> GetProfileAsync(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+                return new ApiResponse(false, "User not found", 404, null);
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Username == username || e.Email == user.Email);
+
+            if (employee == null)
+                return new ApiResponse(false, "Employee profile not found", 404, null);
+
+            string? profilePicUrl = null;
+            if (!string.IsNullOrEmpty(employee.ProfilePictureFileName))
+            {
+                // Generate secure SAS URL from blob name
+                profilePicUrl = _blobStorageService.GetTemporaryBlobUrl(employee.ProfilePictureFileName);
+            }
+
+            var profile = new
+            {
+                employee.EmployeeId,
+                employee.FirstName,
+                employee.LastName,
+                employee.Email,
+                employee.Username,
+                employee.Phone,
+                employee.IsActive,
+                employee.EmployeeRole,
+                employee.ProfilePictureFileName,
+                ProfilePictureUrl = profilePicUrl,
+                employee.CreatedDate,
+                employee.ModifiedDate
+            };
+
+            return new ApiResponse(true, "Profile retrieved successfully", 200, profile);
+        }
+
+
+
     }
 }

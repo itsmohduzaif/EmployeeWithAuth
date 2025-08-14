@@ -9,5 +9,9 @@ namespace HRManagement.Services
         Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto);
         Task<ApiResponse> UpdateEmployee(EmployeeUpdateDTO updated);
         Task<ApiResponse> DeleteEmployee(int id);
+        Task<ApiResponse> UpdateProfileAsync(string usernameFromClaim, EmployeeProfileUpdateDTO profileUpdateDto);
+        Task<ApiResponse> UploadProfilePictureAsync(string usernameFromClaim, IFormFile file);
+        Task<ApiResponse> GetProfileAsync(string username);
+
     }
 }
