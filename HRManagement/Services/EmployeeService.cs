@@ -1,4 +1,4 @@
-﻿    using HRManagement.Data;
+﻿using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;

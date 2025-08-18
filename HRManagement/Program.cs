@@ -127,7 +127,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddSingleton<JwtHandler>();
 builder.Services.AddSingleton<BlobStorageService>();
-//builder.Services.AddSingleton<BlobStorageServiceForLeaveRequestFiles>();
 
 
 
