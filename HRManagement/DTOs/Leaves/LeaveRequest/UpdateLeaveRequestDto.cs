@@ -11,6 +11,7 @@ namespace HRManagement.DTOs.Leaves.LeaveRequest
         public DateTime EndDate { get; set; }
         [Required(ErrorMessage = "Reason is required.")]
         public string Reason { get; set; } = string.Empty;
+        public List<IFormFile>? Files { get; set; }
     }
 
 }

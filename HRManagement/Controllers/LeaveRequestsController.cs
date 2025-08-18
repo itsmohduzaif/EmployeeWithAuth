@@ -33,7 +33,7 @@ namespace HRManagement.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateLeaveRequest([FromBody] CreateLeaveRequestDto dto)
+        public async Task<IActionResult> CreateLeaveRequest([FromForm] CreateLeaveRequestDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -52,7 +52,7 @@ namespace HRManagement.Controllers
 
         [Authorize]
         [HttpPut("{requestId}")]
-        public async Task<IActionResult> UpdateLeaveRequest(int requestId, [FromBody] UpdateLeaveRequestDto dto)
+        public async Task<IActionResult> UpdateLeaveRequest(int requestId, [FromForm] UpdateLeaveRequestDto dto)
         {
             if (!ModelState.IsValid)
             {

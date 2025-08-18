@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250813104749_Adding ProfilePictureFileName and removing url")]
-    partial class AddingProfilePictureFileNameandremovingurl
+    [Migration("20250818061600_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,6 +229,9 @@ namespace HRManagement.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.PrimitiveCollection<string>("LeaveRequestFileNames")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LeaveTypeId")
                         .HasColumnType("int");

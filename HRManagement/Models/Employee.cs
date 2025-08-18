@@ -15,6 +15,7 @@
         public string ModifiedBy { get; set; } = string.Empty;
         public string EmployeeRole { get; set; } = string.Empty;
         public string? ProfilePictureFileName { get; set; }  // Actually the BlobName 
+
     }
 
 }

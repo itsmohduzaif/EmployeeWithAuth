@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -111,7 +111,8 @@ namespace HRManagement.Migrations
                     ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EmployeeRole = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    EmployeeRole = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProfilePictureFileName = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -141,19 +142,25 @@ namespace HRManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LeaveBalances",
+                name: "LeaveRequests",
                 columns: table => new
                 {
-                    LeaveBalanceId = table.Column<int>(type: "int", nullable: false)
+                    LeaveRequestId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
                     LeaveTypeId = table.Column<int>(type: "int", nullable: false),
-                    TotalAllocated = table.Column<int>(type: "int", nullable: false),
-                    Used = table.Column<int>(type: "int", nullable: false)
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ManagerRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequestedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ActionedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LeaveRequestFileNames = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LeaveBalances", x => x.LeaveBalanceId);
+                    table.PrimaryKey("PK_LeaveRequests", x => x.LeaveRequestId);
                 });
 
             migrationBuilder.CreateTable(
@@ -304,7 +311,8 @@ namespace HRManagement.Migrations
                 {
                     { "45deb9d6-c1ae-44a6-a03b-c9a5cfc15f2f", null, "The admin role for the user", "Admin", "ADMIN" },
                     { "639de03f-7876-4fff-96ec-37f8bd3bf180", null, "The Employee role for the user", "Employee", "EMPLOYEE" },
-                    { "8c7768a9-f7b3-4a0a-8b45-d74e44e367af", null, "The Manager role for the user", "Manager", "MANAGER" }
+                    { "8c7768a9-f7b3-4a0a-8b45-d74e44e367af", null, "The Manager role for the user", "Manager", "MANAGER" },
+                    { "e1a1247c-7d96-4ac5-a2e4-7d5fe5fae6e7", null, "The HR role for the user", "Hr", "HR" }
                 });
 
             migrationBuilder.InsertData(
@@ -412,7 +420,7 @@ namespace HRManagement.Migrations
                 name: "GeneralSettings");
 
             migrationBuilder.DropTable(
-                name: "LeaveBalances");
+                name: "LeaveRequests");
 
             migrationBuilder.DropTable(
                 name: "LeaveTypes");

@@ -15,12 +15,15 @@ namespace HRManagement.Services
         private readonly UserManager<User> _userManager;
         private readonly JwtHandler _jwtHandler;
         private readonly BlobStorageService _blobStorageService;
-        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService)
+        private readonly string _containerNameForProfilePictures;
+
+        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService, IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
             _jwtHandler = jwtHandler;
             _blobStorageService = blobStorageService;
+            _containerNameForProfilePictures = configuration["AzureBlobStorage:ProfilePictureContainerName"];
         }
 
         // Implement the methods defined in the IEmployeeService interface here
@@ -228,7 +231,7 @@ namespace HRManagement.Services
             {
                 try
                 {
-                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName);
+                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName, _containerNameForProfilePictures);
                 }
                 catch (Exception ex)
                 {
@@ -295,7 +298,7 @@ namespace HRManagement.Services
 
         public async Task<ApiResponse> UploadProfilePictureAsync(string usernameFromClaim, IFormFile file)
         {
-            if (file == null || file.Length == 0)
+            if (file == null || file.Length == 0)   
                 return new ApiResponse(false, "No file provided", 400, null);
 
 
@@ -309,8 +312,6 @@ namespace HRManagement.Services
             {
                 return new ApiResponse(false, "Only JPG, JPEG and PNG image formats are allowed", 400, null);
             }
-
-
 
             Console.WriteLine($"\n\n\n\n\nThe file content type in lowercase is: {file.ContentType.ToLower()}");
             if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
@@ -334,7 +335,7 @@ namespace HRManagement.Services
             {
                 try
                 {
-                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName);
+                    await _blobStorageService.DeleteFileAsync(employee.ProfilePictureFileName, _containerNameForProfilePictures);
                 }
                 catch (Exception ex)
                 {
@@ -346,7 +347,7 @@ namespace HRManagement.Services
 
             var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
-            string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName);
+            string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForProfilePictures);
 
             employee.ProfilePictureFileName = blobName;
             employee.ModifiedBy = usernameFromClaim;
@@ -374,7 +375,7 @@ namespace HRManagement.Services
             if (!string.IsNullOrEmpty(employee.ProfilePictureFileName))
             {
                 // Generate secure SAS URL from blob name
-                profilePicUrl = _blobStorageService.GetTemporaryBlobUrl(employee.ProfilePictureFileName);
+                profilePicUrl = _blobStorageService.GetTemporaryBlobUrl(employee.ProfilePictureFileName, _containerNameForProfilePictures);
             }
 
             var profile = new

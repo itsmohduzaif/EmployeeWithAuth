@@ -227,6 +227,9 @@ namespace HRManagement.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.PrimitiveCollection<string>("LeaveRequestFileNames")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("LeaveTypeId")
                         .HasColumnType("int");
 

@@ -10,7 +10,7 @@
         public string Reason { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string? ManagerRemarks { get; set; }
-        public DateTime RequestedOn { get; set; }
+        public DateTime RequestedOn { get; set; }   
         public DateTime? ActionedOn { get; set; }
     }
 }
