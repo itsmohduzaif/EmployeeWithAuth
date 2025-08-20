@@ -640,6 +640,60 @@ namespace HRManagement.Services
             if (req.Status != LeaveRequestStatus.Pending)
                 return new ApiResponse(false, "Cannot approve this request.", 400, null);
 
+
+
+
+            ////......................Validation..............................
+
+            // --- Overlapping validation ---
+            var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
+                r.EmployeeId == req.EmployeeId &&
+                r.LeaveRequestId != requestId &&
+                (r.Status == LeaveRequestStatus.Approved) &&
+                (
+                    (req.StartDate >= r.StartDate && req.StartDate <= r.EndDate) ||
+                    (req.EndDate >= r.StartDate && req.EndDate <= r.EndDate) ||
+                    (req.StartDate <= r.StartDate && req.EndDate >= r.EndDate)
+                )
+
+                //(r.Status == LeaveRequestStatus.Pending || r.Status == LeaveRequestStatus.Approved) &&
+                //(
+                //    (req.StartDate >= r.StartDate && req.StartDate <= r.EndDate) ||
+                //    (req.EndDate >= r.StartDate && req.EndDate <= r.EndDate) ||
+                //    (req.StartDate <= r.StartDate && req.EndDate >= r.EndDate)
+                //)
+            );
+
+            if (overlapExists)
+                return new ApiResponse(false, "There is already an overlapping pending/approved leave request for this employee.", 400, null);
+
+
+            // --- Leave balance validation ---
+            var sumOfUsedLeaves = await _context.LeaveRequests
+                .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+                .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+            var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);
+            if (leaveType == null)
+            {
+                return new ApiResponse(false, "Leave type not found.", 404, null);
+            }
+            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
+
+            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            {
+                return new ApiResponse(false, "Leave balance is insufficient for approval.", 400, null);
+            }
+
+
+
+            ////......................Validation Ends..............................
+
+
+
+
             // Extra: validate overlapping after updates or with new approvals
 
             int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
@@ -708,44 +762,6 @@ namespace HRManagement.Services
             return new ApiResponse(true, "Revert Success.", 200, req);
 
         }
-
-
-        //var responseDtos = leaveRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
-        //{
-        //    LeaveRequestId = lr.LeaveRequestId,
-        //    EmployeeId = lr.EmployeeId,
-        //    LeaveTypeId = lr.LeaveTypeId,
-        //    StartDate = lr.StartDate,
-        //    EndDate = lr.EndDate,
-        //    Reason = lr.Reason,
-        //    Status = lr.Status,
-        //    ManagerRemarks = lr.ManagerRemarks,
-        //    RequestedOn = lr.RequestedOn,
-        //    ActionedOn = lr.ActionedOn,
-        //    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-        //    TemporaryBlobUrls = lr.LeaveRequestFileNames?
-        //            .Where(fileName => !string.IsNullOrEmpty(fileName))
-        //            .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-        //            .ToList()
-        //}).ToList();
-
-        //// Validate dates
-        //    if (dto.EndDate<dto.StartDate)
-        //        return new ApiResponse(false, "End date can't be before start date.", 400, null);
-
-        //// Check for overlapping requests for this employee and leave type (Pending or Approved only)
-        //var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
-        //    r.EmployeeId == EmployeeId &&
-        //    r.Status != LeaveRequestStatus.Rejected &&
-        //    r.Status != LeaveRequestStatus.Cancelled &&
-        //    ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
-        //     (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
-        //     (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
-        //);      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
-
-        //    if (overlapExists)
-        //        return new ApiResponse(false, "There is already an overlapping leave request.", 400, null);
-
 
 
 
@@ -888,13 +904,6 @@ namespace HRManagement.Services
             //return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, currentLeavesToday);
             return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, responseDtos);
         }
-
-
-
-
-
-
-
 
     }
 }
