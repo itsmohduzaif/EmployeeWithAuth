@@ -21,27 +21,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.SuppressModelStateInvalidFilter = true;
-});
+//builder.Services.Configure<ApiBehaviorOptions>(options =>
+//{
+//    options.SuppressModelStateInvalidFilter = true;
+//});
 
 // Will upgrade the whole project later to follow this ApiBehaviour (need to deete existing modelstate)
 // th ehttps://www.perplexity.ai/search/using-hrmanagement-dtos-using-gTBta5m1Q9GFRLoSOlX7xA
-//builder.Services.Configure<ApiBehaviorOptions>(options =>
-//{
-//    options.InvalidModelStateResponseFactory = context =>
-//    {
-//        var errors = context.ModelState.Values
-//            .SelectMany(v => v.Errors)
-//            .Select(e => e.ErrorMessage)
-//            .ToList();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .ToList();
 
-//        var response = new ApiResponse(false, "Body Validation failed", 400, errors);
-//        return new BadRequestObjectResult(response);
-//    };
-//});
-
+        var response = new ApiResponse(false, "Body Validation failed", 400, errors);
+        return new BadRequestObjectResult(response);
+    };
+});
+// The required property will also not allow null or empty strings in the request body and give the error response
 
 
 

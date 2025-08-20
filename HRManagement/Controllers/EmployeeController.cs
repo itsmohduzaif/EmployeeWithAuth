@@ -42,16 +42,6 @@ namespace HRManagement.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateEmployee(EmployeeCreateDTO employeeDto)
         {
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
-
             var Response = await _employeeService.CreateEmployee(employeeDto);
             return Ok(Response);
         }
@@ -83,7 +73,6 @@ namespace HRManagement.Controllers
         {
             // Get current logged-in user's username from JWT claims
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
-
             if (string.IsNullOrEmpty(usernameFromClaim))
                 return Unauthorized(new ApiResponse(false, "User identity not found", 401, null));
 

@@ -35,15 +35,6 @@ namespace HRManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLeaveTypeAsync(CreateLeaveTypeDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
-
             var Response = await _LeaveTypeService.CreateLeaveTypeAsync(dto);
             return Ok(Response);
         }
@@ -51,15 +42,6 @@ namespace HRManagement.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateLeaveTypeAsync(LeaveTypeDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
-
             var Response = await _LeaveTypeService.UpdateLeaveTypeAsync(dto);
             return Ok(Response);
         }

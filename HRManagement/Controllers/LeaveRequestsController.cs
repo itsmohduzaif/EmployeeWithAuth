@@ -35,15 +35,6 @@ namespace HRManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLeaveRequest([FromForm] CreateLeaveRequestDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
-
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
             var response = await _leaveRequestService.CreateLeaveRequestAsync(dto, usernameFromClaim);
@@ -54,15 +45,6 @@ namespace HRManagement.Controllers
         [HttpPut("{requestId}")]
         public async Task<IActionResult> UpdateLeaveRequest(int requestId, [FromForm] UpdateLeaveRequestDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
-
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
             var response = await _leaveRequestService.UpdateLeaveRequestAsync(requestId, dto, usernameFromClaim);
@@ -135,14 +117,6 @@ namespace HRManagement.Controllers
         [HttpPut("{requestId}/approve")]
         public async Task<IActionResult> ApproveLeaveRequest(int requestId, [FromBody] ApproveLeaveRequestDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
             var response = await _leaveRequestService.ApproveLeaveRequestAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
@@ -151,14 +125,6 @@ namespace HRManagement.Controllers
         [HttpPut("{requestId}/reject")]
         public async Task<IActionResult> RejectLeaveRequest(int requestId, [FromBody] RejectLeaveRequestDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
             var response = await _leaveRequestService.RejectLeaveRequestAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
@@ -167,14 +133,6 @@ namespace HRManagement.Controllers
         [HttpPut("{requestId}/revert")]
         public async Task<IActionResult> RevertApproval(int requestId, [FromBody] RemarksDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                      .Select(e => e.ErrorMessage)
-                                      .ToList();
-
-                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
-            }
             var response = await _leaveRequestService.RevertApprovalAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
