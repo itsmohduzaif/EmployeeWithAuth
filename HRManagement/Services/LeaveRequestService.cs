@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using HRManagement.Data;
+﻿using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
@@ -7,9 +6,7 @@ using HRManagement.Enums;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
 using HRManagement.Services.Interfaces;
-using Humanizer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace HRManagement.Services
 {
@@ -26,7 +23,7 @@ namespace HRManagement.Services
             _containerNameForLeaveRequestFiles = configuration["AzureBlobStorage:LeaveRequestFilesContainerName"];
         }
 
-        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim)
+        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
         {
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
@@ -36,8 +33,30 @@ namespace HRManagement.Services
                 return new ApiResponse(false, "Employee not found", 404, null);
             }
 
-            var leaveRequests = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == employee.EmployeeId)
+            
+            // Create a base query for LeaveRequests table
+            //var query = _context.LeaveRequests.AsQueryable();
+            var query = _context.LeaveRequests
+        .Where(r => r.EmployeeId == employee.EmployeeId);
+
+
+
+
+            // Apply filters if they are provided
+            if (filters.Status.HasValue)
+                query = query.Where(r => r.Status == filters.Status);
+
+            if (filters.StartDate.HasValue)
+                query = query.Where(r => r.StartDate >= filters.StartDate);
+
+            if (filters.EndDate.HasValue)
+                query = query.Where(r => r.EndDate <= filters.EndDate);
+
+            //if (filters.EmployeeId.HasValue)
+            //    query = query.Where(r => r.EmployeeId == filters.EmployeeId.Value);
+
+            // Fetch list based on filters and sort by RequestedOn (latest first)
+            var leaveRequests = await query
                 .OrderByDescending(r => r.RequestedOn)
                 .ToListAsync();
 
@@ -532,24 +551,33 @@ namespace HRManagement.Services
         // Manager approves and actioned/updates the leave balance
 
 
-        public async Task<ApiResponse> GetAllLeaveRequestsAsync()
+        public async Task<ApiResponse> GetAllLeaveRequestsAsync(GetLeaveRequestsForAdminFilterDto filters)
         {
-            //var allRequests = await _context.LeaveRequests
-            //    .Include(r => r.Employee)       // Optional: to include employee details
-            //    .Include(r => r.LeaveType)      // Optional: to include leave type
-            //    .OrderByDescending(r => r.RequestedOn)
-            //    .ToListAsync();
+            // Create a base query for LeaveRequests table
+            var query = _context.LeaveRequests.AsQueryable();
 
-            var allRequests = await _context.LeaveRequests
+            // Apply filters if they are provided
+            if (filters.Status.HasValue)
+                query = query.Where(r => r.Status == filters.Status);
+
+            if (filters.StartDate.HasValue)
+                query = query.Where(r => r.StartDate >= filters.StartDate);
+
+            if (filters.EndDate.HasValue)
+                query = query.Where(r => r.EndDate <= filters.EndDate);
+
+            if (filters.EmployeeId.HasValue)
+                query = query.Where(r => r.EmployeeId == filters.EmployeeId.Value);
+
+            // Fetch list based on filters and sort by RequestedOn (latest first)
+            var allRequests = await query
                 .OrderByDescending(r => r.RequestedOn)
                 .ToListAsync();
-
 
             if (!allRequests.Any())
             {
                 return new ApiResponse(false, "No leave requests found.", 404, null);
             }
-
 
             var responseDtos = allRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
             {
@@ -571,10 +599,6 @@ namespace HRManagement.Services
             }).ToList();
 
             return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
-
-
-
-            //return new ApiResponse(true, "All leave requests fetched successfully.", 200, allRequests);
         }
 
 

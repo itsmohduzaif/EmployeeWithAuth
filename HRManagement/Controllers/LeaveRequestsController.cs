@@ -22,12 +22,12 @@ namespace HRManagement.Controllers
 
         [Authorize]
         [HttpGet("employee")]
-        public async Task<IActionResult> GetLeaveRequestsForEmployee()
+        public async Task<IActionResult> GetLeaveRequestsForEmployee([FromBody] GetLeaveRequestsForEmployeeFilterDto filters)
         {
             //string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);   // Not using it for now (guid id)
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
-            var Response = await _leaveRequestService.GetLeaveRequestsForEmployeeAsync(usernameFromClaim);
+            var Response = await _leaveRequestService.GetLeaveRequestsForEmployeeAsync(usernameFromClaim, filters);
             return Ok(Response);
         }
 
@@ -106,9 +106,9 @@ namespace HRManagement.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllLeaveRequests()
+        public async Task<IActionResult> GetAllLeaveRequests(GetLeaveRequestsForAdminFilterDto filters)
         {
-            var response = await _leaveRequestService.GetAllLeaveRequestsAsync();
+            var response = await _leaveRequestService.GetAllLeaveRequestsAsync(filters);
             return StatusCode(response.StatusCode, response);
         }
 
