@@ -62,6 +62,12 @@ builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 
+builder.Services.AddSingleton<JwtHandler>();
+builder.Services.AddSingleton<BlobStorageService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+
+
 
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
@@ -125,8 +131,6 @@ builder.Services.AddAuthentication(options =>
 
 
 
-builder.Services.AddSingleton<JwtHandler>();
-builder.Services.AddSingleton<BlobStorageService>();
 
 
 

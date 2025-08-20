@@ -2,6 +2,7 @@
 using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
+using HRManagement.Entities;
 using HRManagement.Enums;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
@@ -15,12 +16,13 @@ namespace HRManagement.Services
         private readonly AppDbContext _context;
         private readonly string _containerNameForLeaveRequestFiles;
         private readonly BlobStorageService _blobStorageService;
-
-        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService)
+        private readonly IEmailService _emailService;
+        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, IEmailService emailService)
         {
             _context = context;
             _blobStorageService = blobStorageService;
             _containerNameForLeaveRequestFiles = configuration["AzureBlobStorage:LeaveRequestFilesContainerName"];
+            _emailService = emailService;
         }
 
         public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
@@ -720,8 +722,7 @@ namespace HRManagement.Services
 
             // Extra: validate overlapping after updates or with new approvals
 
-            int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
-            Console.WriteLine("Days Approved are: ", daysApproved);
+            
 
             //// Update leave balance
             //var leaveBalance = await _context.LeaveBalances.FirstOrDefaultAsync(lb => lb.EmployeeId == req.EmployeeId && lb.LeaveTypeId == req.LeaveTypeId);
@@ -741,6 +742,44 @@ namespace HRManagement.Services
 
             await _context.SaveChangesAsync();
 
+
+
+
+
+            // Send email notification to employee
+            var employee = await _context.Employees.FindAsync(req.EmployeeId);
+
+
+            int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+
+
+            string subject = "Leave Request Approved";
+
+            string body = "";
+            if (req.StartDate.Date == req.EndDate.Date)
+            {
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"Your leave request on {req.StartDate:dd-MMM-yyyy} has been approved for 1 day. Please ensure all necessary work is handed over or completed before your absence.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    $"Wishing you a restful time off.\n\n" +
+                    "Thanks.";
+            }
+            else
+            { 
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"Your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been approved for {daysApproved} days. Please ensure all necessary work is handed over or completed before your absence.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    $"Wishing you a restful time off.\n\n" +
+                    "Thanks.";
+            }
+
+            _emailService.SendEmail(employee.Email, subject, body);
+
+
+            
+
             return new ApiResponse(true, "Leave approved and balance updated.", 200, req);
         }
 
@@ -756,6 +795,35 @@ namespace HRManagement.Services
             req.ActionedOn = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+
+            // Send email notification to employee
+            var employee = await _context.Employees.FindAsync(req.EmployeeId);
+
+            string subject = "Leave Request Rejected";
+            //string body = $"Hi {employee.FirstName},\n\nYour leave request has been rejected. \nReason: {req.ManagerRemarks} days.\n\nThanks.";
+
+            string body = "";
+            if (req.StartDate.Date == req.EndDate.Date)
+            {
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"Your leave request on {req.StartDate:dd-MMM-yyyy} has been rejected.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    "Thanks.";
+            }
+            else
+            {
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"Your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been rejected.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    "Thanks.";
+            }
+
+            _emailService.SendEmail(employee.Email, subject, body);
+
+
 
             return new ApiResponse(true, "Leave request rejected.", 200, req);
         }
@@ -783,6 +851,41 @@ namespace HRManagement.Services
             req.ActionedOn = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+
+            // Send email notification to employee
+            var employee = await _context.Employees.FindAsync(req.EmployeeId);
+
+
+            int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+
+
+            string subject = "Leave Request Status Changed To Pending";
+            string body = "";
+            if (req.StartDate.Date == req.EndDate.Date)
+            {
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"Your status for your leave request on {req.StartDate:dd-MMM-yyyy} has been changed to Pending.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    "Thanks.";
+            }
+            else
+            {
+                body =
+                    $"Hi {employee.FirstName},\n\n" +
+                    $"The status of your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been changed to Pending.\n\n" +
+                    $"Remarks: {req.ManagerRemarks}\n\n" +
+                    "Thanks.";
+            }
+
+
+
+
+            _emailService.SendEmail(employee.Email, subject, body);
+
+
+
             return new ApiResponse(true, "Revert Success.", 200, req);
 
         }
