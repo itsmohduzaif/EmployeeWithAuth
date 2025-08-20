@@ -1,10 +1,15 @@
-﻿using HRManagement.Data;
+﻿using Azure.Core;
+using HRManagement.Data;
 using HRManagement.DTOs;
+using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
 using HRManagement.Enums;
+using HRManagement.Models;
 using HRManagement.Models.Leaves;
 using HRManagement.Services.Interfaces;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace HRManagement.Services
 {
@@ -84,16 +89,53 @@ namespace HRManagement.Services
             // Check for overlapping requests for this employee and leave type (Pending or Approved only)
             var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
                 r.EmployeeId == EmployeeId &&
-                r.LeaveTypeId == dto.LeaveTypeId &&
                 r.Status != LeaveRequestStatus.Rejected &&
+                r.Status != LeaveRequestStatus.Cancelled && 
                 ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
                  (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
                  (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
-            );
+            );      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
 
             if (overlapExists)
                 return new ApiResponse(false, "There is already an overlapping leave request.", 400, null);
 
+
+
+
+
+            // Code to check leave balance
+            var sumOfUsedLeaves = await _context.LeaveRequests
+                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+                .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+            // Get the default annual allocation for this leave type
+            var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
+            if (leaveType == null)
+            {
+                return new ApiResponse(false, "Leave type not found.", 404, null);
+            }
+
+            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            {
+                return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+            }
+
+            // Calculate the number of days for the current leave request
+            int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+
+            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            {
+                return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
+            }
+
+
+
+
+
+
+            // Prepare to store file names
             var fileNames = new List<string>();
 
             // Validate multiple file uploads
@@ -171,8 +213,8 @@ namespace HRManagement.Services
 
 
 
-        
 
+        // Commenting this as the date validation functionality is not completed yet.
         // Employee can update their own request if pending
         public async Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim)
         {
@@ -184,15 +226,76 @@ namespace HRManagement.Services
 
 
             var req = await _context.LeaveRequests.FindAsync(requestId);
-            if (req == null) {
+            if (req == null)
+            {
                 return new ApiResponse(false, "Request not found.", 404, null);
             }
-            if (req.EmployeeId != employee.EmployeeId) { 
+            if (req.EmployeeId != employee.EmployeeId)
+            {
                 return new ApiResponse(false, "You can only update your own requests.", 403, null);
             }
-            if (req.Status != LeaveRequestStatus.Pending) {
+            if (req.Status != LeaveRequestStatus.Pending)
+            {
                 return new ApiResponse(false, "Can only modify pending requests.", 400, null);
             }
+
+
+
+
+
+            int EmployeeId = employee.EmployeeId;
+
+            // Validate dates
+            if (dto.EndDate < dto.StartDate)
+                return new ApiResponse(false, "End date can't be before start date.", 400, null);
+
+            // Check for overlapping requests for this employee and leave type (Pending or Approved only)
+            var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
+                r.EmployeeId == EmployeeId &&
+                r.LeaveRequestId != requestId && // Exclude the current request being updated
+                r.Status != LeaveRequestStatus.Rejected &&
+                r.Status != LeaveRequestStatus.Cancelled &&
+                ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
+                 (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
+                 (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
+            );      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
+
+            if (overlapExists)
+                return new ApiResponse(false, "There is already an overlapping leave request.", 400, null);
+
+
+
+
+
+            // Code to check leave balance
+            var sumOfUsedLeaves = await _context.LeaveRequests
+                .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved)
+                .SumAsync(lr => EF.Functions.DateDiffDay(lr.StartDate, lr.EndDate) + 1);
+
+            // Get the default annual allocation for this leave type
+            var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
+            if (leaveType == null)
+            {
+                return new ApiResponse(false, "Leave type not found.", 404, null);
+            }
+
+            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            {
+                return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+            }
+
+            // Calculate the number of days for the current leave request
+            int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+
+            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            {
+                return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
+            }
+
+
+
 
 
 
@@ -202,7 +305,7 @@ namespace HRManagement.Services
 
             // Deleting the old files
             if (req.LeaveRequestFileNames != null && req.LeaveRequestFileNames.Any())
-            { 
+            {
                 foreach (var fileName in req.LeaveRequestFileNames)
                 {
                     if (!string.IsNullOrEmpty(fileName))
@@ -215,7 +318,7 @@ namespace HRManagement.Services
                         {
                             Console.WriteLine(ex.Message);
                         }
-                        
+
                     }
                 }
             }
@@ -274,6 +377,7 @@ namespace HRManagement.Services
             req.StartDate = dto.StartDate;
             req.EndDate = dto.EndDate;
             req.Reason = dto.Reason;
+            req.LeaveTypeId = dto.LeaveTypeId;
             req.LeaveRequestFileNames = fileNames; // Update with new file names
 
             await _context.SaveChangesAsync();
@@ -308,13 +412,119 @@ namespace HRManagement.Services
 
 
 
+        public async Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim)
+        {
+
+            Console.WriteLine($"\n\n\n\n{DateTime.UtcNow.Year}");
+            Console.WriteLine($"\n\n\n\n{DateTime.UtcNow}");
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            if (employee == null)
+                return new ApiResponse(false, "Employee not found.", 404, null);
+
+            var leaveTypes = await _context.LeaveTypes.ToListAsync();
+
+            var balances = new List<LeaveBalanceDto>();
+
+            foreach (var lt in leaveTypes)
+            {
+                // Only count approved leaves for this employee & leave type, and for the current year
+                var used = await _context.LeaveRequests
+                    .Where(r => r.EmployeeId == employee.EmployeeId
+                             && r.LeaveTypeId == lt.LeaveTypeId
+                             && r.Status == LeaveRequestStatus.Approved
+                             && r.StartDate.Year == DateTime.UtcNow.Year) // If annual allocation
+                    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+
+                balances.Add(new LeaveBalanceDto
+                {
+                    LeaveTypeId = lt.LeaveTypeId,
+                    LeaveTypeName = lt.LeaveTypeName,
+                    DefaultAnnualAllocation = lt.DefaultAnnualAllocation,
+                    Used = used,
+                    Remaining = lt.DefaultAnnualAllocation - used
+                });
+            }
+
+            //DateTime dateTime = DateTime.UtcNow;
+            DateTime dateTime1 = new DateTime(2025, 7, 17, 0, 0, 0, DateTimeKind.Utc);
+            DateTime dateTime2 = new DateTime(2025, 7, 18, 0, 0, 0, DateTimeKind.Utc);
+
+            Console.WriteLine(dateTime1 - dateTime2);
+
+            return new ApiResponse(true, "Leave balances fetched.", 200, balances);
+        }
+
+
+
+        // Only shows for upcoming leaves (approved) for the employee
+        public async Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim)
+        {
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found", 404, null);
+            }
+
+            var upcomingLeaves = await _context.LeaveRequests
+                .Where(r => r.EmployeeId == employee.EmployeeId
+                            && r.Status == LeaveRequestStatus.Approved
+                            && r.StartDate >= DateTime.UtcNow.Date)
+                .OrderBy(r => r.StartDate)
+                .ToListAsync();
+
+            if (!upcomingLeaves.Any())
+            {
+                return new ApiResponse(false, "No upcoming leaves found.", 404, null);
+            }
+
+            var responseDtos = upcomingLeaves.Select(lr => new GetLeaveRequestsForEmployeeDto
+            {
+                LeaveRequestId = lr.LeaveRequestId,
+                EmployeeId = lr.EmployeeId,
+                LeaveTypeId = lr.LeaveTypeId,
+                StartDate = lr.StartDate,
+                EndDate = lr.EndDate,
+                Reason = lr.Reason,
+                Status = lr.Status,
+                ManagerRemarks = lr.ManagerRemarks,
+                RequestedOn = lr.RequestedOn,
+                ActionedOn = lr.ActionedOn,
+                LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+                TemporaryBlobUrls = lr.LeaveRequestFileNames?
+                    .Where(fileName => !string.IsNullOrEmpty(fileName))
+                    .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+                    .ToList()
+            }).ToList();
+
+            return new ApiResponse(true, "Upcoming leaves fetched successfully.", 200, responseDtos);
+        }
 
 
 
 
 
 
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -412,6 +622,17 @@ namespace HRManagement.Services
 
 
 
+        public async Task<ApiResponse> GetPendingLeaveApprovalCountAsync()
+        {
+            int count = await _context.LeaveRequests
+                .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
+
+            return new ApiResponse(true, "Pending leave approval count fetched successfully.", 200, count);
+        }
+
+
+
+
         public async Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto)
         {
             var req = await _context.LeaveRequests.FindAsync(requestId);
@@ -460,5 +681,220 @@ namespace HRManagement.Services
 
             return new ApiResponse(true, "Leave request rejected.", 200, req);
         }
+
+
+        public async Task<ApiResponse> RevertApprovalAsync(int requestId, RemarksDto dto)
+        {
+            var req = await _context.LeaveRequests.FindAsync(requestId);
+            if (req == null) return new ApiResponse(false, "Request not found.", 404, null);
+
+            if (req.Status == LeaveRequestStatus.Approved)
+            {
+                req.Status = LeaveRequestStatus.Pending;
+            }
+            else if (req.Status == LeaveRequestStatus.Rejected)
+            {
+                req.Status = LeaveRequestStatus.Pending;
+            }
+            else
+            {
+                return new ApiResponse(false, "Only approved or rejected requests can be reverted.", 400, null);
+            }
+
+            req.ManagerRemarks = dto?.ManagerRemarks ?? "";
+            req.ActionedOn = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return new ApiResponse(true, "Revert Success.", 200, req);
+
+        }
+
+
+        //var responseDtos = leaveRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
+        //{
+        //    LeaveRequestId = lr.LeaveRequestId,
+        //    EmployeeId = lr.EmployeeId,
+        //    LeaveTypeId = lr.LeaveTypeId,
+        //    StartDate = lr.StartDate,
+        //    EndDate = lr.EndDate,
+        //    Reason = lr.Reason,
+        //    Status = lr.Status,
+        //    ManagerRemarks = lr.ManagerRemarks,
+        //    RequestedOn = lr.RequestedOn,
+        //    ActionedOn = lr.ActionedOn,
+        //    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+        //    TemporaryBlobUrls = lr.LeaveRequestFileNames?
+        //            .Where(fileName => !string.IsNullOrEmpty(fileName))
+        //            .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+        //            .ToList()
+        //}).ToList();
+
+        //// Validate dates
+        //    if (dto.EndDate<dto.StartDate)
+        //        return new ApiResponse(false, "End date can't be before start date.", 400, null);
+
+        //// Check for overlapping requests for this employee and leave type (Pending or Approved only)
+        //var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
+        //    r.EmployeeId == EmployeeId &&
+        //    r.Status != LeaveRequestStatus.Rejected &&
+        //    r.Status != LeaveRequestStatus.Cancelled &&
+        //    ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
+        //     (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
+        //     (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
+        //);      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
+
+        //    if (overlapExists)
+        //        return new ApiResponse(false, "There is already an overlapping leave request.", 400, null);
+
+
+
+
+        // the lr which are approved and for this month
+        public async Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync()
+        {
+            var now = DateTime.UtcNow;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            //Start of Month: 01 - 08 - 2025 00:00:00, End of Month: 31 - 08 - 2025 00:00:00
+            Console.WriteLine($"\n\n\n\n\n\nStart of Month: {startOfMonth}, End of Month: {endOfMonth}");
+
+            //startOfMonth.AddMonths(1): 01 - 09 - 2025 00:00:00, startOfMonth.AddMonths(1).AddDays(1): 02 - 09 - 2025 00:00:00
+            Console.WriteLine($"\n\n\n\n\n\nstartOfMonth.AddMonths(1): {startOfMonth.AddMonths(1)}, startOfMonth.AddMonths(1).AddDays(1): {startOfMonth.AddMonths(1).AddDays(1)}");
+
+
+            var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
+                .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
+                (lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
+                (lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth) ||
+                (lr.EndDate == startOfMonth) ||
+                (lr.StartDate == endOfMonth) ||
+                (lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth))
+                .OrderBy(r => r.StartDate)
+                .ToListAsync();
+
+
+            if (!approvedLeaveRequestsOfThisMonth.Any())
+            {
+                return new ApiResponse(false, "No leave requests found.", 404, null);
+            }
+
+
+            var responseDtos = new List<object>();
+
+            foreach (var lr in approvedLeaveRequestsOfThisMonth)
+            {
+                var employee = await _context.Employees.FindAsync(lr.EmployeeId);
+
+                if (employee == null)
+                {
+                    // If employee not found, skip this leave request
+                    continue;
+                }
+
+
+                responseDtos.Add(new
+                {
+                    LeaveRequestId = lr.LeaveRequestId,
+                    EmployeeId = lr.EmployeeId,
+                    FirstName = employee.FirstName,
+                    LastName = employee.LastName,
+                    Username = employee.Username,
+                    Email = employee.Email,
+                    LeaveTypeId = lr.LeaveTypeId,
+                    StartDate = lr.StartDate,
+                    EndDate = lr.EndDate,
+                    Reason = lr.Reason,
+                    Status = lr.Status,
+                    ManagerRemarks = lr.ManagerRemarks,
+                    RequestedOn = lr.RequestedOn,
+                    ActionedOn = lr.ActionedOn,
+                    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+                    TemporaryBlobUrls = lr.LeaveRequestFileNames?
+                        .Where(fileName => !string.IsNullOrEmpty(fileName))
+                        .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+                        .ToList()
+                });
+            }
+
+
+
+
+            //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, approvedLeaveRequestsOfThisMonth);
+            return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, responseDtos);
+            //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, null);
+
+        }
+
+
+
+        // Current Planned Leaves Employees
+        // Showing the employees who are currently on leave today (i.e., today falls between their approved leave start and end dates).
+        public async Task<ApiResponse> GetCurrentPlannedLeavesAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            Console.WriteLine($"Today: {today}");
+            var currentLeavesToday = await _context.LeaveRequests
+                .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
+                 (lr.StartDate <= today && lr.EndDate >= today))
+                .OrderBy(lr => lr.StartDate)
+                .ToListAsync();
+
+
+            if (!currentLeavesToday.Any())
+            {
+                return new ApiResponse(false, "No leave requests found.", 404, null);
+            }
+
+
+            var responseDtos = new List<object>();
+
+            foreach (var lr in currentLeavesToday)
+            {
+                var employee = await _context.Employees.FindAsync(lr.EmployeeId);
+
+                if (employee == null)
+                {
+                    // If employee not found, skip this leave request
+                    continue;
+                }
+
+
+                responseDtos.Add(new
+                {
+                    LeaveRequestId = lr.LeaveRequestId,
+                    EmployeeId = lr.EmployeeId,
+                    FirstName = employee.FirstName,
+                    LastName = employee.LastName,
+                    Username = employee.Username,
+                    Email = employee.Email,
+                    LeaveTypeId = lr.LeaveTypeId,
+                    StartDate = lr.StartDate,
+                    EndDate = lr.EndDate,
+                    Reason = lr.Reason,
+                    Status = lr.Status,
+                    ManagerRemarks = lr.ManagerRemarks,
+                    RequestedOn = lr.RequestedOn,
+                    ActionedOn = lr.ActionedOn,
+                    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+                    TemporaryBlobUrls = lr.LeaveRequestFileNames?
+                        .Where(fileName => !string.IsNullOrEmpty(fileName))
+                        .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+                        .ToList()
+                });
+            }
+
+
+            //return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, currentLeavesToday);
+            return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, responseDtos);
+        }
+
+
+
+
+
+
+
+
     }
 }

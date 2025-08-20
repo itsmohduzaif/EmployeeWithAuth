@@ -80,10 +80,31 @@ namespace HRManagement.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet("balances")]
+        public async Task<IActionResult> GetLeaveBalancesForEmployee()
+        {
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
-        // Manager endpoints
+            var response = await _leaveRequestService.GetLeaveBalancesForEmployeeAsync(usernameFromClaim);
+            return StatusCode(response.StatusCode, response);
+        }
 
-        [Authorize(Roles = "Manager,Admin")]
+        [Authorize]
+        [HttpGet("upcoming-leaves")]
+        public async Task<IActionResult> GetUpcomingLeaves()
+        {
+            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+            var result = await _leaveRequestService.GetUpcomingLeavesForEmployeeAsync(usernameFromClaim);
+            return StatusCode(result.StatusCode, result);
+        }
+
+
+
+        // Admin endpoints
+
+        [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllLeaveRequests()
         {
@@ -92,7 +113,7 @@ namespace HRManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("pendingleaverequests")]
         public async Task<IActionResult> GetPendingLeaveRequests()
         {
@@ -100,7 +121,17 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-approvals-count")]
+        public async Task<IActionResult> GetPendingApprovalCount()
+        {
+            var result = await _leaveRequestService.GetPendingLeaveApprovalCountAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+
+        [Authorize(Roles = "Admin")]
         [HttpPut("{requestId}/approve")]
         public async Task<IActionResult> ApproveLeaveRequest(int requestId, [FromBody] ApproveLeaveRequestDto dto)
         {
@@ -116,7 +147,7 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{requestId}/reject")]
         public async Task<IActionResult> RejectLeaveRequest(int requestId, [FromBody] RejectLeaveRequestDto dto)
         {
@@ -131,5 +162,40 @@ namespace HRManagement.Controllers
             var response = await _leaveRequestService.RejectLeaveRequestAsync(requestId, dto);
             return StatusCode(response.StatusCode, response);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{requestId}/revert")]
+        public async Task<IActionResult> RevertApproval(int requestId, [FromBody] RemarksDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                      .Select(e => e.ErrorMessage)
+                                      .ToList();
+
+                return BadRequest(new ApiResponse(false, "Body Validation failed", 400, errors));
+            }
+            var response = await _leaveRequestService.RevertApprovalAsync(requestId, dto);
+            return StatusCode(response.StatusCode, response);
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("employees-on-leave-this-month")]
+        public async Task<IActionResult> GetEmployeesOnLeaveThisMonth()
+        {
+            var result = await _leaveRequestService.GetEmployeesOnLeaveThisMonthAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("current-planned-leaves")]
+        public async Task<IActionResult> GetCurrentPlannedLeaves()
+        {
+            var result = await _leaveRequestService.GetCurrentPlannedLeavesAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+
     }
 }
