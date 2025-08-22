@@ -1,4 +1,6 @@
-﻿using HRManagement.Models;
+﻿//errrrrrrrrrr
+
+using HRManagement.Models;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
