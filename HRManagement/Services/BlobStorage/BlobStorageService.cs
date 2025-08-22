@@ -43,22 +43,6 @@ public class BlobStorageService
         return fileName;
     }
 
-    // If we want to save the file directly with the link
-    //public async Task<string> UploadFileAsync(IFormFile file, string fileName)
-    //{
-    //    BlobContainerClient containerClient = new BlobContainerClient(_connectionString, _containerName);
-    //    await containerClient.CreateIfNotExistsAsync();
-
-    //    BlobClient blobClient = containerClient.GetBlobClient(fileName);
-
-    //    using (var stream = file.OpenReadStream())
-    //    {
-    //        await blobClient.UploadAsync(stream, overwrite: true);
-    //    }
-
-    //    return fileName; // Return blob name, not full URL
-    //}
-
     public string GetTemporaryBlobUrl(string blobName, string _containerName, int expiryMinutes = 30)
     {
         var containerClient = new BlobContainerClient(_connectionString, _containerName);
@@ -83,6 +67,23 @@ public class BlobStorageService
         return sasUri.ToString();
     }
 }
+
+
+// If we want to save the file directly with the link
+//public async Task<string> UploadFileAsync(IFormFile file, string fileName)
+//{
+//    BlobContainerClient containerClient = new BlobContainerClient(_connectionString, _containerName);
+//    await containerClient.CreateIfNotExistsAsync();
+
+//    BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+//    using (var stream = file.OpenReadStream())
+//    {
+//        await blobClient.UploadAsync(stream, overwrite: true);
+//    }
+
+//    return fileName; // Return blob name, not full URL
+//}
 
 
 //| Method on `blobClient` | What it does                                    |
