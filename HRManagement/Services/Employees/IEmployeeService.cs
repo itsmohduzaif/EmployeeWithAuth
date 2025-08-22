@@ -1,6 +1,6 @@
 ﻿using HRManagement.DTOs;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Employees
 {
     public interface IEmployeeService
     {

@@ -1,10 +1,9 @@
 ﻿using HRManagement.Models;
-using HRManagement.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Emails
 {
     public class EmailService : IEmailService
     {

@@ -6,7 +6,7 @@ using HRManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Employees
 {
     public class EmployeeService : IEmployeeService
     {

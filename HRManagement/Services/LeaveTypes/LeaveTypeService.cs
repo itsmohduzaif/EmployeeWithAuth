@@ -3,11 +3,10 @@ using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
-using HRManagement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.LeaveTypes
 {
     public class LeaveTypeService : ILeaveTypeService
     {

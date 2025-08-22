@@ -4,7 +4,7 @@ using HRManagement.DTOs.Settings;
 using HRManagement.Models.Settings;
 using Microsoft.EntityFrameworkCore;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Settings
 {
     public class SettingsService : ISettingsService
     {

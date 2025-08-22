@@ -2,7 +2,7 @@
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
 
-namespace HRManagement.Services.Interfaces
+namespace HRManagement.Services.LeaveRequests
 {
     public interface ILeaveRequestService
     {

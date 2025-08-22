@@ -1,5 +1,5 @@
 ﻿using HRManagement.DTOs.Settings;
-using HRManagement.Services;
+using HRManagement.Services.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

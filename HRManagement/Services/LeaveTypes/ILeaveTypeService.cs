@@ -1,7 +1,7 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 
-namespace HRManagement.Services.Interfaces
+namespace HRManagement.Services.LeaveTypes
 {
     public interface ILeaveTypeService
     {

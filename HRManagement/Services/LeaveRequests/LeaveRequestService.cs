@@ -6,10 +6,10 @@ using HRManagement.Entities;
 using HRManagement.Enums;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
-using HRManagement.Services.Interfaces;
+using HRManagement.Services.Emails;
 using Microsoft.EntityFrameworkCore;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.LeaveRequests
 {
     public class LeaveRequestService : ILeaveRequestService
     {
@@ -112,9 +112,9 @@ namespace HRManagement.Services
                 r.EmployeeId == EmployeeId &&
                 r.Status != LeaveRequestStatus.Rejected &&
                 r.Status != LeaveRequestStatus.Cancelled && 
-                ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
-                 (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
-                 (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
+                (dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate ||
+                 dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate ||
+                 dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate)
             );      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
 
             if (overlapExists)
@@ -276,9 +276,9 @@ namespace HRManagement.Services
                 r.LeaveRequestId != requestId && // Exclude the current request being updated
                 r.Status != LeaveRequestStatus.Rejected &&
                 r.Status != LeaveRequestStatus.Cancelled &&
-                ((dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate) ||
-                 (dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate) ||
-                 (dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate))
+                (dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate ||
+                 dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate ||
+                 dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate)
             );      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
 
             if (overlapExists)
@@ -675,11 +675,11 @@ namespace HRManagement.Services
             var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
                 r.EmployeeId == req.EmployeeId &&
                 r.LeaveRequestId != requestId &&
-                (r.Status == LeaveRequestStatus.Approved) &&
+                r.Status == LeaveRequestStatus.Approved &&
                 (
-                    (req.StartDate >= r.StartDate && req.StartDate <= r.EndDate) ||
-                    (req.EndDate >= r.StartDate && req.EndDate <= r.EndDate) ||
-                    (req.StartDate <= r.StartDate && req.EndDate >= r.EndDate)
+                    req.StartDate >= r.StartDate && req.StartDate <= r.EndDate ||
+                    req.EndDate >= r.StartDate && req.EndDate <= r.EndDate ||
+                    req.StartDate <= r.StartDate && req.EndDate >= r.EndDate
                 )
 
                 //(r.Status == LeaveRequestStatus.Pending || r.Status == LeaveRequestStatus.Approved) &&
@@ -908,11 +908,11 @@ namespace HRManagement.Services
 
             var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
                 .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
-                (lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
-                (lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth) ||
-                (lr.EndDate == startOfMonth) ||
-                (lr.StartDate == endOfMonth) ||
-                (lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth))
+                lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth ||
+                lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth ||
+                lr.EndDate == startOfMonth ||
+                lr.StartDate == endOfMonth ||
+                lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
                 .OrderBy(r => r.StartDate)
                 .ToListAsync();
 
@@ -938,20 +938,20 @@ namespace HRManagement.Services
 
                 responseDtos.Add(new
                 {
-                    LeaveRequestId = lr.LeaveRequestId,
-                    EmployeeId = lr.EmployeeId,
-                    FirstName = employee.FirstName,
-                    LastName = employee.LastName,
-                    Username = employee.Username,
-                    Email = employee.Email,
-                    LeaveTypeId = lr.LeaveTypeId,
-                    StartDate = lr.StartDate,
-                    EndDate = lr.EndDate,
-                    Reason = lr.Reason,
-                    Status = lr.Status,
-                    ManagerRemarks = lr.ManagerRemarks,
-                    RequestedOn = lr.RequestedOn,
-                    ActionedOn = lr.ActionedOn,
+                    lr.LeaveRequestId,
+                    lr.EmployeeId,
+                    employee.FirstName,
+                    employee.LastName,
+                    employee.Username,
+                    employee.Email,
+                    lr.LeaveTypeId,
+                    lr.StartDate,
+                    lr.EndDate,
+                    lr.Reason,
+                    lr.Status,
+                    lr.ManagerRemarks,
+                    lr.RequestedOn,
+                    lr.ActionedOn,
                     LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
                     TemporaryBlobUrls = lr.LeaveRequestFileNames?
                         .Where(fileName => !string.IsNullOrEmpty(fileName))
@@ -979,7 +979,7 @@ namespace HRManagement.Services
             Console.WriteLine($"Today: {today}");
             var currentLeavesToday = await _context.LeaveRequests
                 .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
-                 (lr.StartDate <= today && lr.EndDate >= today))
+                 lr.StartDate <= today && lr.EndDate >= today)
                 .OrderBy(lr => lr.StartDate)
                 .ToListAsync();
 
@@ -1005,20 +1005,20 @@ namespace HRManagement.Services
 
                 responseDtos.Add(new
                 {
-                    LeaveRequestId = lr.LeaveRequestId,
-                    EmployeeId = lr.EmployeeId,
-                    FirstName = employee.FirstName,
-                    LastName = employee.LastName,
-                    Username = employee.Username,
-                    Email = employee.Email,
-                    LeaveTypeId = lr.LeaveTypeId,
-                    StartDate = lr.StartDate,
-                    EndDate = lr.EndDate,
-                    Reason = lr.Reason,
-                    Status = lr.Status,
-                    ManagerRemarks = lr.ManagerRemarks,
-                    RequestedOn = lr.RequestedOn,
-                    ActionedOn = lr.ActionedOn,
+                    lr.LeaveRequestId,
+                    lr.EmployeeId,
+                    employee.FirstName,
+                    employee.LastName,
+                    employee.Username,
+                    employee.Email,
+                    lr.LeaveTypeId,
+                    lr.StartDate,
+                    lr.EndDate,
+                    lr.Reason,
+                    lr.Status,
+                    lr.ManagerRemarks,
+                    lr.RequestedOn,
+                    lr.ActionedOn,
                     LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
                     TemporaryBlobUrls = lr.LeaveRequestFileNames?
                         .Where(fileName => !string.IsNullOrEmpty(fileName))

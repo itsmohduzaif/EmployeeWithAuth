@@ -1,7 +1,7 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.DTOs.Settings;
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Settings
 {
     public interface ISettingsService
     {

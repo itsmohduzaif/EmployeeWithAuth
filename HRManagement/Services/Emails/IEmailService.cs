@@ -1,4 +1,4 @@
-﻿namespace HRManagement.Services.Interfaces
+﻿namespace HRManagement.Services.Emails
 {
     public interface IEmailService
     {

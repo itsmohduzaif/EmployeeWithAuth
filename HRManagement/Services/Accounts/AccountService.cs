@@ -3,7 +3,7 @@ using HRManagement.DTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
-using HRManagement.Services.Interfaces;
+using HRManagement.Services.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -12,7 +12,7 @@ using System.Net.Mail;
 
 
 
-namespace HRManagement.Services
+namespace HRManagement.Services.Accounts
 {
     public class AccountService : IAccountService
     {
@@ -71,7 +71,7 @@ namespace HRManagement.Services
 
             var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Email == user.Email);
 
-            return new ApiResponse(true, "Login successful", 200, new { token = token, employee = employee });
+            return new ApiResponse(true, "Login successful", 200, new { token, employee });
         }
 
 

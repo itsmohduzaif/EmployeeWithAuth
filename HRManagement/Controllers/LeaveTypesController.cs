@@ -1,7 +1,7 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.Services;
-using HRManagement.Services.Interfaces;
+using HRManagement.Services.LeaveTypes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
