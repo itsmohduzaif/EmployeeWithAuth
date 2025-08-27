@@ -2,6 +2,7 @@ using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.Entities;
 using HRManagement.ExceptionHandlers;
+using HRManagement.Helpers;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
 using HRManagement.Services.Accounts;
@@ -11,9 +12,11 @@ using HRManagement.Services.LeaveRequests;
 using HRManagement.Services.LeaveTypes;
 using HRManagement.Services.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Configuration;
 using System.Text;
@@ -69,6 +72,10 @@ builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 builder.Services.AddSingleton<JwtHandler>();
 builder.Services.AddSingleton<BlobStorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+
+
+
 
 
 
@@ -138,7 +145,15 @@ builder.Services.AddAuthentication(options =>
 
 
 
+//builder.Services.AddAutoMapper(typeof(Program));
+//builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
+
+//builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+//builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 
 // Configure CORS to allow Angular app on localhost:4200
@@ -149,10 +164,6 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
-
-
-
-
 
 
 

@@ -28,7 +28,7 @@ namespace HRManagement.Services.LeaveRequests
         public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
         {
             var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
 
             if (employee == null)
             {
@@ -95,7 +95,7 @@ namespace HRManagement.Services.LeaveRequests
 
         public async Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto, string usernameFromClaim)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
             {
                 return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
@@ -239,7 +239,7 @@ namespace HRManagement.Services.LeaveRequests
         // Employee can update their own request if pending
         public async Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
             {
                 return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
@@ -408,7 +408,7 @@ namespace HRManagement.Services.LeaveRequests
 
         public async Task<ApiResponse> CancelLeaveRequestAsync(int requestId, string usernameFromClaim)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
             {
                 return new ApiResponse(false, "Employee not found for the given username for given token.", 404, null);
@@ -440,7 +440,7 @@ namespace HRManagement.Services.LeaveRequests
             Console.WriteLine($"\n\n\n\n{DateTime.UtcNow}");
 
             var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
                 return new ApiResponse(false, "Employee not found.", 404, null);
 
@@ -484,7 +484,7 @@ namespace HRManagement.Services.LeaveRequests
         public async Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim)
         {
             var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
 
             if (employee == null)
             {
@@ -942,7 +942,7 @@ namespace HRManagement.Services.LeaveRequests
                     lr.EmployeeId,
                     employee.FirstName,
                     employee.LastName,
-                    employee.Username,
+                    employee.UserName,
                     employee.Email,
                     lr.LeaveTypeId,
                     lr.StartDate,
@@ -1009,7 +1009,7 @@ namespace HRManagement.Services.LeaveRequests
                     lr.EmployeeId,
                     employee.FirstName,
                     employee.LastName,
-                    employee.Username,
+                    employee.UserName,
                     employee.Email,
                     lr.LeaveTypeId,
                     lr.StartDate,

@@ -1,10 +1,13 @@
-﻿using HRManagement.Data;
+﻿using AutoMapper;
+using HRManagement.Data;
 using HRManagement.DTOs;
+using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace HRManagement.Services.Employees
 {
@@ -16,14 +19,16 @@ namespace HRManagement.Services.Employees
         private readonly JwtHandler _jwtHandler;
         private readonly BlobStorageService _blobStorageService;
         private readonly string _containerNameForProfilePictures;
+        private readonly IMapper _mapper;
 
-        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService, IConfiguration configuration)
+        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;
             _jwtHandler = jwtHandler;
             _blobStorageService = blobStorageService;
             _containerNameForProfilePictures = configuration["AzureBlobStorage:ProfilePictureContainerName"];
+            _mapper = mapper;
         }
 
         // Implement the methods defined in the IEmployeeService interface here
@@ -72,7 +77,7 @@ namespace HRManagement.Services.Employees
                 FirstName = employeeDto.FirstName,
                 LastName = employeeDto.LastName,
                 Email = employeeDto.Email,
-                UserName = employeeDto.Username,
+                UserName = employeeDto.UserName,
                 PhoneNumber = employeeDto.PhoneNumber
             };
 
@@ -88,20 +93,23 @@ namespace HRManagement.Services.Employees
 
             await _userManager.AddToRoleAsync(user, employeeDto.EmployeeRole);
 
-            var employee = new Employee
-            {
-                Email = employeeDto.Email,
-                FirstName = employeeDto.FirstName,
-                LastName = employeeDto.LastName,
-                Username = employeeDto.Username,
-                Phone = employeeDto.PhoneNumber,
-                IsActive = employeeDto.IsActive,
-                CreatedBy = employeeDto.CreatedBy,
-                CreatedDate = DateTime.UtcNow,
-                ModifiedBy = employeeDto.CreatedBy,
-                ModifiedDate = DateTime.UtcNow,
-                EmployeeRole = employeeDto.EmployeeRole
-            };
+            //var employee = new Employee
+            //{
+            //    Email = employeeDto.Email,
+            //    FirstName = employeeDto.FirstName,
+            //    LastName = employeeDto.LastName,
+            //    UserName = employeeDto.UserName,
+            //    Phone = employeeDto.PhoneNumber,
+            //    IsActive = employeeDto.IsActive,
+            //    CreatedBy = employeeDto.CreatedBy,
+            //    CreatedDate = DateTime.UtcNow,
+            //    ModifiedBy = employeeDto.CreatedBy,
+            //    ModifiedDate = DateTime.UtcNow,
+            //    EmployeeRole = employeeDto.EmployeeRole
+            //};
+
+            // Using Automapper
+            var employee = _mapper.Map<Employee>(employeeDto);
 
             await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
@@ -144,28 +152,36 @@ namespace HRManagement.Services.Employees
                 };
             }
 
-            // Update Employee table
-            employee.FirstName = updated.FirstName;
-            employee.LastName = updated.LastName;
-            employee.Email = updated.Email;
-            employee.Phone = updated.Phone;
-            employee.Username = updated.Username;
-            employee.IsActive = updated.IsActive;
-            employee.ModifiedBy = updated.ModifiedBy;
-            employee.ModifiedDate = DateTime.UtcNow;
+            //// Update Employee table
+            //employee.FirstName = updated.FirstName;
+            //employee.LastName = updated.LastName;
+            //employee.Email = updated.Email;
+            //employee.Phone = updated.Phone;
+            //employee.UserName = updated.UserName;
+            //employee.IsActive = updated.IsActive;
+            //employee.ModifiedBy = updated.ModifiedBy;
+            //employee.ModifiedDate = DateTime.UtcNow;
 
-            // Update Users table
-            user.FirstName = updated.FirstName;
-            user.LastName = updated.LastName;
-            user.Email = updated.Email;
-            user.UserName = updated.Username;
-            user.PhoneNumber = updated.Phone;
-            
+            //// Update Users table
+            //user.FirstName = updated.FirstName;
+            //user.LastName = updated.LastName;
+            //user.Email = updated.Email;
+            //user.UserName = updated.UserName;
+            //user.PhoneNumber = updated.Phone;
+
+            Console.WriteLine($"\n\n\n\n{employee.EmployeeFullName}");
+
+            _mapper.Map(updated, employee);
+            employee.ModifiedDate = DateTime.UtcNow; // Set fields not present in DTO manually
+
+            Console.WriteLine($"\n\n\n\n{employee.EmployeeFullName}");
+
 
             // Save changes to both tables
 
             var result = await _userManager.UpdateAsync(user);
 
+            Console.WriteLine($"\n\n\n\n{employee.EmployeeFullName}");
             if (!result.Succeeded)
             {
                 // Collect the identity errors
@@ -263,7 +279,7 @@ namespace HRManagement.Services.Employees
                 return new ApiResponse(false, "User not found", 404, null);
 
             // Find related employee record by email or username
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
                 return new ApiResponse(false, "Employee profile not found", 404, null);
 
@@ -271,7 +287,7 @@ namespace HRManagement.Services.Employees
             user.FirstName = profileUpdateDto.FirstName;
             user.LastName = profileUpdateDto.LastName;
             user.PhoneNumber = profileUpdateDto.Phone;
-            user.UserName = profileUpdateDto.Username;
+            user.UserName = profileUpdateDto.UserName;
             user.Email = profileUpdateDto.Email;
 
             var result = await _userManager.UpdateAsync(user);
@@ -281,14 +297,18 @@ namespace HRManagement.Services.Employees
                 return new ApiResponse(false, "User update failed: " + string.Join(", ", errors), 400, errors);
             }
 
-            // Update Employee table fields
-            employee.FirstName = profileUpdateDto.FirstName;
-            employee.LastName = profileUpdateDto.LastName;
-            employee.Phone = profileUpdateDto.Phone;
-            employee.Username = profileUpdateDto.Username;
-            employee.Email = profileUpdateDto.Email;
+            //// Update Employee table fields
+            //employee.FirstName = profileUpdateDto.FirstName;
+            //employee.LastName = profileUpdateDto.LastName;
+            //employee.Phone = profileUpdateDto.Phone;
+            //employee.UserName = profileUpdateDto.UserName;
+            //employee.Email = profileUpdateDto.Email;
+            //employee.ModifiedBy = $"{user.FirstName} {user.LastName}";
+            //employee.ModifiedDate = DateTime.UtcNow;
+
+            _mapper.Map(profileUpdateDto, employee);
+            employee.ModifiedDate = DateTime.UtcNow; // Set fields not present in DTO manually
             employee.ModifiedBy = $"{user.FirstName} {user.LastName}";
-            employee.ModifiedDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -326,7 +346,7 @@ namespace HRManagement.Services.Employees
             if (user == null)
                 return new ApiResponse(false, "User not found", 404, null);
 
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == usernameFromClaim);
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
                 return new ApiResponse(false, "Employee profile not found", 404, null);
 
@@ -366,7 +386,7 @@ namespace HRManagement.Services.Employees
                 return new ApiResponse(false, "User not found", 404, null);
 
             var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Username == username || e.Email == user.Email);
+                .FirstOrDefaultAsync(e => e.UserName == username || e.Email == user.Email);
 
             if (employee == null)
                 return new ApiResponse(false, "Employee profile not found", 404, null);
@@ -378,21 +398,24 @@ namespace HRManagement.Services.Employees
                 profilePicUrl = _blobStorageService.GetTemporaryBlobUrl(employee.ProfilePictureFileName, _containerNameForProfilePictures);
             }
 
-            var profile = new
-            {
-                employee.EmployeeId,
-                employee.FirstName,
-                employee.LastName,
-                employee.Email,
-                employee.Username,
-                employee.Phone,
-                employee.IsActive,
-                employee.EmployeeRole,
-                employee.ProfilePictureFileName,
-                ProfilePictureUrl = profilePicUrl,
-                employee.CreatedDate,
-                employee.ModifiedDate
-            };
+            //var profile = new
+            //{
+            //    employee.EmployeeId,
+            //    employee.FirstName,
+            //    employee.LastName,
+            //    employee.Email,
+            //    employee.UserName,
+            //    employee.Phone,
+            //    employee.IsActive,
+            //    employee.EmployeeRole,
+            //    employee.ProfilePictureFileName,
+            //    ProfilePictureUrl = profilePicUrl,
+            //    employee.CreatedDate,
+            //    employee.ModifiedDate
+            //};
+
+            var profile = _mapper.Map<EmployeeProfileDTO>(employee);
+            profile.ProfilePictureUrl = profilePicUrl;
 
             return new ApiResponse(true, "Profile retrieved successfully", 200, profile);
         }
