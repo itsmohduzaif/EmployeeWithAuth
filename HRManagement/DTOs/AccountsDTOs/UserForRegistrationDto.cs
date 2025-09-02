@@ -1,14 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace HRManagement.DTOs
+namespace HRManagement.DTOs.AccountsDTOs
 {
     public class UserForRegistrationDto
     {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-
+        //public string? FirstName { get; set; }
+        //public string? LastName { get; set; }
+        public string? EmployeeName { get; set; }
+        
         [Required(ErrorMessage = "Email is required.")]
-        public string? Email { get; set; }
+        public string? WorkEmail { get; set; }
         [Required(ErrorMessage = "Username is required.")]
         public string? UserName { get; set; }
 
@@ -17,7 +18,7 @@ namespace HRManagement.DTOs
 
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string? ConfirmPassword { get; set; } = null;
-        public string PhoneNumber { get; set; } = string.Empty;
+        public string PersonalPhone { get; set; } = string.Empty;
         public string? EmployeeRole { get; set; }
     }
 }

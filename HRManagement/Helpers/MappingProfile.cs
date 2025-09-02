@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using HRManagement.DTOs;
 using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Models;
 
@@ -15,9 +14,9 @@ namespace HRManagement.Helpers
             CreateMap<EmployeeUpdateDTO, Employee>();
             //CreateMap<Employee, EmployeeProfileDTO>().ForMember(dest => dest.ProfilePictureUrl, opt => opt.Ignore());
             CreateMap<Employee, EmployeeProfileDTO>()
-                .ForMember(dest => dest.ProfilePictureUrl, opt => opt.Ignore())  // set manually after mapping
-                .ForMember(dest => dest.EmployeeFullName,
-                            opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}".Trim()));
+                .ForMember(dest => dest.ProfilePictureUrl, opt => opt.Ignore());  // set manually after mapping
+                //.ForMember(dest => dest.EmployeeFullName,
+                //            opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}".Trim()));
 
 
             CreateMap<EmployeeProfileUpdateDTO, Employee>();

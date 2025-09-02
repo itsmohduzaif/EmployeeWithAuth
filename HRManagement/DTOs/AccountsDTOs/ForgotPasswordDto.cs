@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 
-namespace HRManagement.DTOs
+namespace HRManagement.DTOs.AccountsDTOs
 {
     public class ForgotPasswordDto
     {
         [Required(ErrorMessage = "Email is required.")]
-        public string Email { get; set; }
+        public string WorkEmail { get; set; }
     }
 
 }

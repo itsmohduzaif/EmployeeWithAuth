@@ -1,4 +1,5 @@
 ﻿using HRManagement.DTOs;
+using HRManagement.DTOs.EmployeeDTOs;
 
 namespace HRManagement.Services.Employees
 {

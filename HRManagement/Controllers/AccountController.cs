@@ -1,4 +1,4 @@
-﻿using HRManagement.DTOs;
+﻿using HRManagement.DTOs.AccountsDTOs;
 using HRManagement.Services.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

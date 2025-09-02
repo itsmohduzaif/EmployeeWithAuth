@@ -1,5 +1,6 @@
 ﻿using HRManagement.Data;
 using HRManagement.DTOs;
+using HRManagement.DTOs.AccountsDTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
@@ -19,9 +20,10 @@ namespace HRManagement.Services.Accounts
         private readonly UserManager<User> _userManager;
         private readonly JwtHandler _jwtHandler;
         private readonly AppDbContext _context;
-        private readonly IEmailService _emailService;
+        //private readonly IEmailService _emailService;
+        private readonly EmailService _emailService;
 
-        public AccountService(UserManager<User> userManager, JwtHandler jwtHandler, AppDbContext context, IEmailService emailService)
+        public AccountService(UserManager<User> userManager, JwtHandler jwtHandler, AppDbContext context, EmailService emailService)
         {
             _userManager = userManager;
             _jwtHandler = jwtHandler;
@@ -37,11 +39,12 @@ namespace HRManagement.Services.Accounts
 
             var user = new User
             {
-                FirstName = userForRegistration.FirstName,
-                LastName = userForRegistration.LastName,
-                Email = userForRegistration.Email,
+                EmployeeName = userForRegistration.EmployeeName,
+                //FirstName = userForRegistration.FirstName,
+                //LastName = userForRegistration.LastName,
+                Email = userForRegistration.WorkEmail,
                 UserName = userForRegistration.UserName,
-                PhoneNumber = userForRegistration.PhoneNumber
+                PhoneNumber = userForRegistration.PersonalPhone
             };
             var result = await _userManager.CreateAsync(user, userForRegistration.Password);
 
@@ -62,14 +65,14 @@ namespace HRManagement.Services.Accounts
 
         public async Task<ApiResponse> Login(UserForAuthenticationDto userForAuthentication)
         {
-            var user = await _userManager.FindByEmailAsync(userForAuthentication.Email);
+            var user = await _userManager.FindByEmailAsync(userForAuthentication.WorkEmail);
             if (user is null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password!))
                 return new ApiResponse(false, "Invalid email or password", 401, null);
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwtHandler.CreateToken(user, roles);
 
-            var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Email == user.Email);
+            var employee = await _context.Employees.FirstOrDefaultAsync(x => x.WorkEmail == user.Email);
 
             return new ApiResponse(true, "Login successful", 200, new { token, employee });
         }
@@ -77,7 +80,7 @@ namespace HRManagement.Services.Accounts
 
         public async Task<ApiResponse> ForgotPasswordAsync(ForgotPasswordDto dto)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(dto.WorkEmail);
             if (user == null)
                 return new ApiResponse(true, "If the email exists, password reset instructions have been sent.", 200, null);
 
@@ -103,7 +106,7 @@ namespace HRManagement.Services.Accounts
             var decodedToken = Uri.UnescapeDataString(dto.Token);
             
 
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(dto.WorkEmail);
             if (user == null)
                 return new ApiResponse(false, "User not found", 404, null);
 
@@ -123,7 +126,7 @@ namespace HRManagement.Services.Accounts
         public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordDto dto, string usernameFromClaim)
         {
 
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(dto.WorkEmail);
             if (user == null)
                 return new ApiResponse(false, "User not found", 404, null);
 

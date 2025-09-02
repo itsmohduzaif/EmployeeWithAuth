@@ -71,7 +71,7 @@ builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 
 builder.Services.AddSingleton<JwtHandler>();
 builder.Services.AddSingleton<BlobStorageService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<EmailService>();
 
 
 

@@ -16,8 +16,8 @@ namespace HRManagement.Services.LeaveRequests
         private readonly AppDbContext _context;
         private readonly string _containerNameForLeaveRequestFiles;
         private readonly BlobStorageService _blobStorageService;
-        private readonly IEmailService _emailService;
-        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, IEmailService emailService)
+        private readonly EmailService _emailService;
+        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, EmailService emailService)
         {
             _context = context;
             _blobStorageService = blobStorageService;
@@ -759,7 +759,7 @@ namespace HRManagement.Services.LeaveRequests
             if (req.StartDate.Date == req.EndDate.Date)
             {
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"Your leave request on {req.StartDate:dd-MMM-yyyy} has been approved for 1 day. Please ensure all necessary work is handed over or completed before your absence.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     $"Wishing you a restful time off.\n\n" +
@@ -768,14 +768,14 @@ namespace HRManagement.Services.LeaveRequests
             else
             { 
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"Your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been approved for {daysApproved} days. Please ensure all necessary work is handed over or completed before your absence.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     $"Wishing you a restful time off.\n\n" +
                     "Thanks.";
             }
 
-            _emailService.SendEmail(employee.Email, subject, body);
+            _emailService.SendEmail(employee.WorkEmail, subject, body);
 
 
             
@@ -807,7 +807,7 @@ namespace HRManagement.Services.LeaveRequests
             if (req.StartDate.Date == req.EndDate.Date)
             {
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"Your leave request on {req.StartDate:dd-MMM-yyyy} has been rejected.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     "Thanks.";
@@ -815,13 +815,13 @@ namespace HRManagement.Services.LeaveRequests
             else
             {
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"Your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been rejected.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     "Thanks.";
             }
 
-            _emailService.SendEmail(employee.Email, subject, body);
+            _emailService.SendEmail(employee.WorkEmail, subject, body);
 
 
 
@@ -865,7 +865,7 @@ namespace HRManagement.Services.LeaveRequests
             if (req.StartDate.Date == req.EndDate.Date)
             {
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"Your status for your leave request on {req.StartDate:dd-MMM-yyyy} has been changed to Pending.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     "Thanks.";
@@ -873,7 +873,7 @@ namespace HRManagement.Services.LeaveRequests
             else
             {
                 body =
-                    $"Hi {employee.FirstName},\n\n" +
+                    $"Hi {employee.EmployeeName},\n\n" +
                     $"The status of your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been changed to Pending.\n\n" +
                     $"Remarks: {req.ManagerRemarks}\n\n" +
                     "Thanks.";
@@ -882,7 +882,7 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            _emailService.SendEmail(employee.Email, subject, body);
+            _emailService.SendEmail(employee.WorkEmail, subject, body);
 
 
 
@@ -940,10 +940,9 @@ namespace HRManagement.Services.LeaveRequests
                 {
                     lr.LeaveRequestId,
                     lr.EmployeeId,
-                    employee.FirstName,
-                    employee.LastName,
+                    employee.EmployeeName,
                     employee.UserName,
-                    employee.Email,
+                    employee.WorkEmail,
                     lr.LeaveTypeId,
                     lr.StartDate,
                     lr.EndDate,
@@ -1007,10 +1006,9 @@ namespace HRManagement.Services.LeaveRequests
                 {
                     lr.LeaveRequestId,
                     lr.EmployeeId,
-                    employee.FirstName,
-                    employee.LastName,
+                    employee.EmployeeName,
                     employee.UserName,
-                    employee.Email,
+                    employee.WorkEmail,
                     lr.LeaveTypeId,
                     lr.StartDate,
                     lr.EndDate,

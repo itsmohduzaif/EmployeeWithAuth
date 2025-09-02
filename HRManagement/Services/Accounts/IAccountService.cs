@@ -1,4 +1,5 @@
 ﻿using HRManagement.DTOs;
+using HRManagement.DTOs.AccountsDTOs;
 
 namespace HRManagement.Services.Accounts
 {
