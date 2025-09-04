@@ -6,6 +6,7 @@ using HRManagement.Helpers;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
 using HRManagement.Services.Accounts;
+using HRManagement.Services.Drafts;
 using HRManagement.Services.Emails;
 using HRManagement.Services.Employees;
 using HRManagement.Services.LeaveRequests;
@@ -68,6 +69,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+builder.Services.AddScoped<IDraftService, DraftService>();
 
 builder.Services.AddSingleton<JwtHandler>();
 builder.Services.AddSingleton<BlobStorageService>();

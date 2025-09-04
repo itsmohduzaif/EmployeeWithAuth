@@ -20,7 +20,6 @@ namespace HRManagement.Services.Accounts
         private readonly UserManager<User> _userManager;
         private readonly JwtHandler _jwtHandler;
         private readonly AppDbContext _context;
-        //private readonly IEmailService _emailService;
         private readonly EmailService _emailService;
 
         public AccountService(UserManager<User> userManager, JwtHandler jwtHandler, AppDbContext context, EmailService emailService)
@@ -40,8 +39,6 @@ namespace HRManagement.Services.Accounts
             var user = new User
             {
                 EmployeeName = userForRegistration.EmployeeName,
-                //FirstName = userForRegistration.FirstName,
-                //LastName = userForRegistration.LastName,
                 Email = userForRegistration.WorkEmail,
                 UserName = userForRegistration.UserName,
                 PhoneNumber = userForRegistration.PersonalPhone
@@ -56,7 +53,6 @@ namespace HRManagement.Services.Accounts
 
             }
 
-            //await _userManager.AddToRoleAsync(user, "Employee");
             await _userManager.AddToRoleAsync(user, userForRegistration.EmployeeRole);
 
             return new ApiResponse(true, "User registered successfully", 200, null);

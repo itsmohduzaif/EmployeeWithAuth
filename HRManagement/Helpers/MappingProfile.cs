@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HRManagement.DTOs.DraftDTOs;
 using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Models;
 
@@ -20,6 +21,9 @@ namespace HRManagement.Helpers
 
 
             CreateMap<EmployeeProfileUpdateDTO, Employee>();
+            CreateMap<Employee, EmployeeProfileUpdateDTO>();
+            CreateMap<Employee, EmployeeCreateDraftDTO>();
+            CreateMap<EmployeeCreateDraftDTO, Employee>();
 
         }
     }

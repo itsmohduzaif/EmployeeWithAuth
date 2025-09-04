@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
+//iii.	Save a Draft Functionality so that user can resume from whenever he/she stopped  
+
+
 namespace HRManagement.Services.Employees
 {
     public class EmployeeService : IEmployeeService
@@ -74,8 +77,6 @@ namespace HRManagement.Services.Employees
 
             var user = new User
             {
-                //FirstName = employeeDto.FirstName,
-                //LastName = employeeDto.LastName,
                 EmployeeName = employeeDto.EmployeeName,
                 Email = employeeDto.WorkEmail,
                 UserName = employeeDto.UserName,
@@ -272,6 +273,7 @@ namespace HRManagement.Services.Employees
 
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
+
 
             return new ApiResponse
             {

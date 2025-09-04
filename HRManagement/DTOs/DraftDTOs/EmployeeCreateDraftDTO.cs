@@ -1,18 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace HRManagement.DTOs.EmployeeDTOs
+namespace HRManagement.DTOs.DraftDTOs
 {
-    public class EmployeeCreateDTO
+    public class EmployeeCreateDraftDTO
     {
-        [Required(ErrorMessage = "Username is required.")]
         public string? UserName { get; set; }
-        [Required(ErrorMessage = "Password is required")]
         public string? Password { get; set; }
-        [Required(ErrorMessage = "Role is required.")]
         public string? EmployeeRole { get; set; }
         public string EmployeeName { get; set; } = string.Empty; // new field
         public bool IsActive { get; set; }
-        public string CreatedBy { get; set; } = string.Empty;
 
 
         // New Properties from Excel file
@@ -34,7 +30,6 @@ namespace HRManagement.DTOs.EmployeeDTOs
 
         // Contact & Address
         public string PersonalEmail { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Work Email is required.")]
         public string WorkEmail { get; set; } = string.Empty;
         public string PersonalPhone { get; set; } = string.Empty;
         public string WorkPhone { get; set; } = string.Empty;

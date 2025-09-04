@@ -3,7 +3,6 @@
     public class Employee
     {
         public int EmployeeId { get; set; }
-        public string EmployeeName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -12,6 +11,14 @@
         public string ModifiedBy { get; set; } = string.Empty;
         public string EmployeeRole { get; set; } = string.Empty;
         public string? ProfilePictureFileName { get; set; }
+        public string EmployeeName { get; set; } = string.Empty;
+        public bool IsDraft { get; set; } = false;
+
+
+
+
+
+        // New Properties from Excel file
         public string Status { get; set; } = string.Empty;
         public string EmploymentType { get; set; } = string.Empty;
         public string ContractBy { get; set; } = string.Empty;
