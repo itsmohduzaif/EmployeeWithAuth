@@ -11,6 +11,7 @@ using HRManagement.Services.Emails;
 using HRManagement.Services.Employees;
 using HRManagement.Services.LeaveRequests;
 using HRManagement.Services.LeaveTypes;
+using HRManagement.Services.Notifications;
 using HRManagement.Services.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -75,6 +76,7 @@ builder.Services.AddSingleton<JwtHandler>();
 builder.Services.AddSingleton<BlobStorageService>();
 builder.Services.AddSingleton<EmailService>();
 
+builder.Services.AddHostedService<ExpiryNotificationService>();
 
 
 
@@ -146,16 +148,7 @@ builder.Services.AddAuthentication(options =>
 
 
 
-
-//builder.Services.AddAutoMapper(typeof(Program));
-//builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
-
-//builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
-
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-//builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 
 // Configure CORS to allow Angular app on localhost:4200
