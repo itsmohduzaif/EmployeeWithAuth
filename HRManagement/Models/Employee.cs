@@ -11,7 +11,6 @@
         public string ModifiedBy { get; set; } = string.Empty;
         public string EmployeeRole { get; set; } = string.Empty;
         public string? ProfilePictureFileName { get; set; }
-        public string EmployeeName { get; set; } = string.Empty;
         public bool IsDraft { get; set; } = false;
 
 
@@ -19,6 +18,7 @@
 
 
         // New Properties from Excel file
+        public string EmployeeName { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string EmploymentType { get; set; } = string.Empty;
         public string ContractBy { get; set; } = string.Empty;

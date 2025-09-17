@@ -9,6 +9,7 @@ using HRManagement.Services.Accounts;
 using HRManagement.Services.Drafts;
 using HRManagement.Services.Emails;
 using HRManagement.Services.Employees;
+using HRManagement.Services.EmployeesExcel;
 using HRManagement.Services.LeaveRequests;
 using HRManagement.Services.LeaveTypes;
 using HRManagement.Services.Notifications;
@@ -77,6 +78,10 @@ builder.Services.AddSingleton<BlobStorageService>();
 builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddHostedService<ExpiryNotificationService>();
+builder.Services.AddSingleton<EmployeeExcelExporter>();
+builder.Services.AddSingleton<EmployeeExcelImporter>();
+builder.Services.AddScoped<IEmployeeExcel, EmployeeExcel>();
+
 
 
 
@@ -170,6 +175,7 @@ app.UseExceptionHandler();
 
 // Enable CORS for frontend
 app.UseCors("AllowAngularApp");
+
 
 
 

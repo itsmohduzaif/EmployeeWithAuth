@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901111427_Initial")]
-    partial class Initial
+    [Migration("20250915121158_checking import from excel")]
+    partial class checkingimportfromexcel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -165,8 +165,8 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ContractEndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("ContractEndDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("CountryOfResidence")
                         .IsRequired()
@@ -183,11 +183,11 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime?>("DateOfJoining")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("DateOfJoining")
+                        .HasColumnType("date");
 
                     b.Property<string>("Department")
                         .IsRequired()
@@ -205,8 +205,8 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("EmiratesIdExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("EmiratesIdExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("EmiratesIdNumber")
                         .IsRequired()
@@ -228,18 +228,21 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("InsuranceExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("InsuranceExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDraft")
                         .HasColumnType("bit");
 
                     b.Property<string>("JobTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("LabourCardExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("LabourCardExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("ManagerName")
                         .IsRequired()
@@ -260,8 +263,8 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("PassportExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("PassportExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("PassportNumber")
                         .IsRequired()
@@ -294,8 +297,8 @@ namespace HRManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("VisaExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("VisaExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("WorkEmail")
                         .IsRequired()

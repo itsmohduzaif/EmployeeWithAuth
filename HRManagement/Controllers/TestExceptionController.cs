@@ -1,13 +1,56 @@
 ﻿
 // Will Delete this Controller
 
-using Microsoft.AspNetCore.Mvc;
 using HRManagement.Exceptions;
+using HRManagement.Helpers;
+using HRManagement.Services.EmployeesExcel;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
 public class TestExceptionController : ControllerBase
 {
+    private readonly ILogger<TestExceptionController> _logger;
+    private readonly EmployeeExcelExporter _employeeExcelExporter;
+    private readonly EmployeeExcelImporter _employeeExcelImporter;
+    private readonly IEmployeeExcel _employeeExcel;
+
+    //Microsoft Identity Client
+
+    public TestExceptionController(ILogger<TestExceptionController> logger, EmployeeExcelExporter employeeExcelExporter, EmployeeExcelImporter employeeExcelImporter, IEmployeeExcel employeeExcel)
+    {
+        _logger = logger;
+        _employeeExcelExporter = employeeExcelExporter;
+        _employeeExcelImporter = employeeExcelImporter;
+        _employeeExcel = employeeExcel;
+
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        Console.WriteLine("\n\n\n\n\n hehehehn\n\n");
+
+        //Commenting the export code to test import code
+        //_employeeExcelExporter.ExportEmployeesToExcel(@"C:\Users\user\Downloads\test7.xlsx");
+
+
+        //_employeeExcelImporter.ReadEmployeesFromExcel(@"C:\Users\user\Downloads\test7.xlsx");
+
+
+
+        // Calling from scoped
+
+        await _employeeExcel.ExportEmployeesToExcel(@"C:\Users\user\Downloads\test7.xlsx");
+
+        //await _employeeExcel.ReadEmployeesFromExcel(@"C:\Users\user\Downloads\test7.xlsx");
+
+
+
+        return Ok("Excel file exported successfully.");
+    }
+
+
     [HttpGet("bad-request")]
     public IActionResult ThrowBadRequest()
     {

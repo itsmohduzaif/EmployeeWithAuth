@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class checkingimportfromexcel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -100,7 +100,6 @@ namespace HRManagement.Migrations
                 {
                     EmployeeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EmployeeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -109,21 +108,23 @@ namespace HRManagement.Migrations
                     ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmployeeRole = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProfilePictureFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDraft = table.Column<bool>(type: "bit", nullable: false),
+                    EmployeeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmploymentType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContractBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ContractEndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ContractEndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     WorkLocation = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Nationality = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
                     MaritalStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmiratesIdNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PassportNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     JobTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Department = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ManagerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateOfJoining = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateOfJoining = table.Column<DateOnly>(type: "date", nullable: true),
                     PersonalEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WorkEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PersonalPhone = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -135,11 +136,11 @@ namespace HRManagement.Migrations
                     PermanentAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CountryOfResidence = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PoBox = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PassportExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    VisaExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EmiratesIdExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LabourCardExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    InsuranceExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    PassportExpiryDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    VisaExpiryDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EmiratesIdExpiryDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    LabourCardExpiryDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    InsuranceExpiryDate = table.Column<DateOnly>(type: "date", nullable: true)
                 },
                 constraints: table =>
                 {

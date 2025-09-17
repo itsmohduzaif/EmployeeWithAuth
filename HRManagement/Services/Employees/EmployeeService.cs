@@ -74,7 +74,30 @@ namespace HRManagement.Services.Employees
         }
         public async Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto)
         {
+            // Validate work email domain
+            var allowedDomains = new List<string>
+            {
+                "@jumeirah.com",
+                "@dubaiholding.com",
+                "@datafirstservices.com",
+                "@sdd.shj.ae",
+                "@gmail.com"
+            };
 
+            var email = employeeDto.WorkEmail?.ToLower();
+
+            if (string.IsNullOrWhiteSpace(email) || !allowedDomains.Any(domain => email.EndsWith(domain)))
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Invalid work email domain. Allowed domains are: " + string.Join(", ", allowedDomains),
+                    StatusCode = 400
+                };
+            }
+
+
+            // First create the Identiy user
             var user = new User
             {
                 EmployeeName = employeeDto.EmployeeName,
@@ -110,6 +133,7 @@ namespace HRManagement.Services.Employees
             //    EmployeeRole = employeeDto.EmployeeRole
             //};
 
+            // Map and create Employee
             // Using Automapper
             var employee = _mapper.Map<Employee>(employeeDto);
             employee.CreatedDate = DateTime.UtcNow;
@@ -132,6 +156,30 @@ namespace HRManagement.Services.Employees
 
         public async Task<ApiResponse> UpdateEmployee(EmployeeUpdateDTO updated)
         {
+            // Validate work email domain
+            var allowedDomains = new List<string>
+            {
+                "@jumeirah.com",
+                "@dubaiholding.com",
+                "@datafirstservices.com",
+                "@sdd.shj.ae",
+                "@gmail.com"
+            };
+
+            var email = updated.WorkEmail?.ToLower();
+
+            if (string.IsNullOrWhiteSpace(email) || !allowedDomains.Any(domain => email.EndsWith(domain)))
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Invalid work email domain. Allowed domains are: " + string.Join(", ", allowedDomains),
+                    StatusCode = 400
+                };
+            }
+
+
+
             // Find employee in HRManagement.Employees table
             var employee = await _context.Employees.FindAsync(updated.EmployeeId);
             if (employee == null)
