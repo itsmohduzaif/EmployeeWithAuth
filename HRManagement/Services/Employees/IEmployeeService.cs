@@ -8,6 +8,7 @@ namespace HRManagement.Services.Employees
         Task<ApiResponse> GetAllEmployees();
         Task<ApiResponse> GetEmployeeById(int id);
         Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto);
+        Task<ApiResponse> SignUpAsAnEmployee(SignUpAsAnEmployeeDTO employeeDto);
         Task<ApiResponse> UpdateEmployee(EmployeeUpdateDTO updated);
         Task<ApiResponse> DeleteEmployee(int id);
         Task<ApiResponse> UpdateProfileAsync(string usernameFromClaim, EmployeeProfileUpdateDTO profileUpdateDto);

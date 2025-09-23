@@ -5,6 +5,7 @@ using HRManagement.ExceptionHandlers;
 using HRManagement.Helpers;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
+using HRManagement.SeedConfiguration;
 using HRManagement.Services.Accounts;
 using HRManagement.Services.Drafts;
 using HRManagement.Services.Emails;
@@ -169,6 +170,22 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+// Seed data for Users Table if the database is empty.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    var roleManager = services.GetRequiredService<RoleManager<Role>>();
+
+    await DbInitializer.SeedAsync(context, userManager, roleManager);
+}
+
+
+
+
+
 
 // For exception handling 
 app.UseExceptionHandler();

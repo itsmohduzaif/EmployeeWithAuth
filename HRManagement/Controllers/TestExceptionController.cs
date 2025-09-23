@@ -26,6 +26,7 @@ public class TestExceptionController : ControllerBase
 
     }
 
+    // created this endpoint just for debugging purpose, will delete later
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -48,6 +49,17 @@ public class TestExceptionController : ControllerBase
 
 
         return Ok("Excel file exported successfully.");
+    }
+
+
+    // created this endpoint just for debugging purpose, will delete later
+    [HttpGet("check-leave-days")]
+    public async Task<IActionResult> CheckLeaveDays()
+    {
+        DateTime startDate = new DateTime(2025, 9, 19, 14, 30, 0);
+        DateTime endDate = new DateTime(2025, 9, 22, 13, 30, 0);
+        decimal effectiveLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(startDate, endDate);
+        return Ok($"Endpoint Executed, the value of effectiveLeaveDays is: {effectiveLeaveDays}");
     }
 
 

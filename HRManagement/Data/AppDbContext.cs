@@ -28,15 +28,17 @@ namespace HRManagement.Data
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new RoleConfiguration());
             builder.ApplyConfiguration(new LeaveTypeConfiguration());
-            //builder.ApplyConfiguration(new EmployeeConfiguration());
+            builder.ApplyConfiguration(new EmployeeConfiguration());
 
             builder.ApplyConfiguration(new GeneralSettingsConfiguration());
             builder.ApplyConfiguration(new ThemeSettingsConfiguration());
             builder.ApplyConfiguration(new EmailSettingsConfiguration());
             builder.ApplyConfiguration(new EmailTemplateConfiguration());
 
+            //builder.ApplyConfiguration(new UserConfiguration());
 
-            
+
+
 
         }
 

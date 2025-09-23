@@ -38,6 +38,15 @@ namespace HRManagement.Controllers
             return Ok(Response);
         }
 
+        // POST  https://localhost:7150/api/employee/signup
+        [HttpPost("signup")]
+        public async Task<ActionResult> SignUpAsAnEmployee(SignUpAsAnEmployeeDTO employeeDto)
+        {
+            var Response = await _employeeService.SignUpAsAnEmployee(employeeDto);
+            return Ok(Response);
+        }
+
+
         // POST  https://localhost:7150/api/employee/
         [Authorize(Roles = "Admin")]
         [HttpPost]

@@ -18,6 +18,11 @@ namespace HRManagement.Models.Leaves
         // Store multiple file names as List<string>
         public List<string>? LeaveRequestFileNames { get; set; }
         //public List<string>? TemporaryBlobUrls { get; set; } // For temporary URLs if needed
+
+        // New field for leave days used (in decimal format)
+        public decimal LeaveDaysUsed { get; set; }
+
+
     }
 }
 

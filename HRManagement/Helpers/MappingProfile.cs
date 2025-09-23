@@ -11,6 +11,8 @@ namespace HRManagement.Helpers
         {
             CreateMap<Employee, EmployeeCreateDTO>();
             CreateMap<EmployeeCreateDTO, Employee>();
+            CreateMap<Employee, SignUpAsAnEmployeeDTO>();
+            CreateMap<SignUpAsAnEmployeeDTO, Employee>();
             CreateMap<Employee, EmployeeUpdateDTO>();
             CreateMap<EmployeeUpdateDTO, Employee>();
             //CreateMap<Employee, EmployeeProfileDTO>().ForMember(dest => dest.ProfilePictureUrl, opt => opt.Ignore());

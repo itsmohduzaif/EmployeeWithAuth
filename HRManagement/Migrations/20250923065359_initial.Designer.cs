@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250915121158_checking import from excel")]
-    partial class checkingimportfromexcel
+    [Migration("20250923065359_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -315,6 +315,44 @@ namespace HRManagement.Migrations
                     b.HasKey("EmployeeId");
 
                     b.ToTable("Employees");
+
+                    b.HasData(
+                        new
+                        {
+                            EmployeeId = 1,
+                            ContractBy = "",
+                            CountryOfResidence = "",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CurrentAddress = "",
+                            Department = "",
+                            EmergencyContactName = "",
+                            EmergencyContactNumber = "",
+                            EmergencyContactRelationship = "",
+                            EmiratesIdNumber = "",
+                            EmployeeName = "Admin",
+                            EmployeeRole = "Admin",
+                            EmploymentType = "",
+                            Gender = "",
+                            IsActive = true,
+                            IsDraft = false,
+                            JobTitle = "",
+                            ManagerName = "",
+                            MaritalStatus = "",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Nationality = "",
+                            PassportNumber = "",
+                            PermanentAddress = "",
+                            PersonalEmail = "",
+                            PersonalPhone = "9876543210",
+                            PoBox = "",
+                            Status = "",
+                            UserName = "admin",
+                            WorkEmail = "admin@gmail.com",
+                            WorkLocation = "",
+                            WorkPhone = ""
+                        });
                 });
 
             modelBuilder.Entity("HRManagement.Models.Leaves.LeaveRequest", b =>
@@ -333,6 +371,9 @@ namespace HRManagement.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("LeaveDaysUsed")
+                        .HasColumnType("decimal(18,2)");
 
                     b.PrimitiveCollection<string>("LeaveRequestFileNames")
                         .HasColumnType("nvarchar(max)");
@@ -388,51 +429,30 @@ namespace HRManagement.Migrations
                         new
                         {
                             LeaveTypeId = 1,
-                            DefaultAnnualAllocation = 20,
+                            DefaultAnnualAllocation = 22,
                             LeaveTypeDescription = "Paid leave for vacation or personal reasons.",
                             LeaveTypeName = "Annual Leave"
                         },
                         new
                         {
                             LeaveTypeId = 2,
-                            DefaultAnnualAllocation = 10,
+                            DefaultAnnualAllocation = 90,
                             LeaveTypeDescription = "Leave granted for health-related issues.",
                             LeaveTypeName = "Sick Leave"
                         },
                         new
                         {
                             LeaveTypeId = 3,
-                            DefaultAnnualAllocation = 90,
-                            LeaveTypeDescription = "Leave for childbirth and recovery.",
-                            LeaveTypeName = "Maternity Leave"
+                            DefaultAnnualAllocation = 0,
+                            LeaveTypeDescription = "Leave for personal matters",
+                            LeaveTypeName = "Personal/Casual Leave"
                         },
                         new
                         {
                             LeaveTypeId = 4,
-                            DefaultAnnualAllocation = 15,
-                            LeaveTypeDescription = "Leave for fathers during childbirth period.",
-                            LeaveTypeName = "Paternity Leave"
-                        },
-                        new
-                        {
-                            LeaveTypeId = 5,
-                            DefaultAnnualAllocation = 5,
-                            LeaveTypeDescription = "Leave in case of death of a family member.",
-                            LeaveTypeName = "Bereavement Leave"
-                        },
-                        new
-                        {
-                            LeaveTypeId = 6,
                             DefaultAnnualAllocation = 0,
-                            LeaveTypeDescription = "Leave without salary deduction for personal matters.",
-                            LeaveTypeName = "Unpaid Leave"
-                        },
-                        new
-                        {
-                            LeaveTypeId = 7,
-                            DefaultAnnualAllocation = 0,
-                            LeaveTypeDescription = "Leave earned by working extra hours or holidays.",
-                            LeaveTypeName = "Compensatory Leave"
+                            LeaveTypeDescription = "Leave if there is any emergency.",
+                            LeaveTypeName = "Emergency Leave"
                         });
                 });
 

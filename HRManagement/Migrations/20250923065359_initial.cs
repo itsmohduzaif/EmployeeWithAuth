@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class checkingimportfromexcel : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -184,7 +184,8 @@ namespace HRManagement.Migrations
                     ManagerRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RequestedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ActionedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LeaveRequestFileNames = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LeaveRequestFileNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LeaveDaysUsed = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -354,6 +355,11 @@ namespace HRManagement.Migrations
                 values: new object[] { 1, "Hello {{FirstName}},\nWelcome onboard!", "Welcome email sent to new employees", true, "Welcome to DataFirst Services!", "WelcomeEmployee", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System" });
 
             migrationBuilder.InsertData(
+                table: "Employees",
+                columns: new[] { "EmployeeId", "ContractBy", "ContractEndDate", "CountryOfResidence", "CreatedBy", "CreatedDate", "CurrentAddress", "DateOfBirth", "DateOfJoining", "Department", "EmergencyContactName", "EmergencyContactNumber", "EmergencyContactRelationship", "EmiratesIdExpiryDate", "EmiratesIdNumber", "EmployeeName", "EmployeeRole", "EmploymentType", "Gender", "InsuranceExpiryDate", "IsActive", "IsDraft", "JobTitle", "LabourCardExpiryDate", "ManagerName", "MaritalStatus", "ModifiedBy", "ModifiedDate", "Nationality", "PassportExpiryDate", "PassportNumber", "PermanentAddress", "PersonalEmail", "PersonalPhone", "PoBox", "ProfilePictureFileName", "Status", "UserName", "VisaExpiryDate", "WorkEmail", "WorkLocation", "WorkPhone" },
+                values: new object[] { 1, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "Admin", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "admin", null, "admin@gmail.com", "", "" });
+
+            migrationBuilder.InsertData(
                 table: "GeneralSettings",
                 columns: new[] { "Id", "CompanyName", "DateFormat", "DefaultCurrency", "IsMaintenanceMode", "Language", "SupportEmail", "SystemLanguage", "TimeZone", "UpdatedAt", "UpdatedBy" },
                 values: new object[] { 1, "DataFirst Services", "MM/dd/yyyy", "USD", false, "English", "support@datafirstservices.com", "en-US", "UTC", new DateTime(2024, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc), "System" });
@@ -363,13 +369,10 @@ namespace HRManagement.Migrations
                 columns: new[] { "LeaveTypeId", "DefaultAnnualAllocation", "LeaveTypeDescription", "LeaveTypeName" },
                 values: new object[,]
                 {
-                    { 1, 20, "Paid leave for vacation or personal reasons.", "Annual Leave" },
-                    { 2, 10, "Leave granted for health-related issues.", "Sick Leave" },
-                    { 3, 90, "Leave for childbirth and recovery.", "Maternity Leave" },
-                    { 4, 15, "Leave for fathers during childbirth period.", "Paternity Leave" },
-                    { 5, 5, "Leave in case of death of a family member.", "Bereavement Leave" },
-                    { 6, 0, "Leave without salary deduction for personal matters.", "Unpaid Leave" },
-                    { 7, 0, "Leave earned by working extra hours or holidays.", "Compensatory Leave" }
+                    { 1, 22, "Paid leave for vacation or personal reasons.", "Annual Leave" },
+                    { 2, 90, "Leave granted for health-related issues.", "Sick Leave" },
+                    { 3, 0, "Leave for personal matters", "Personal/Casual Leave" },
+                    { 4, 0, "Leave if there is any emergency.", "Emergency Leave" }
                 });
 
             migrationBuilder.InsertData(

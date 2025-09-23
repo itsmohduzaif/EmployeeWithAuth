@@ -72,6 +72,93 @@ namespace HRManagement.Services.Employees
                 Response = employee
             };
         }
+
+
+        public async Task<ApiResponse> SignUpAsAnEmployee(SignUpAsAnEmployeeDTO employeeDto)
+        {
+            // Validate work email domain
+            var allowedDomains = new List<string>
+            {
+                "@jumeirah.com",
+                "@dubaiholding.com",
+                "@datafirstservices.com",   
+                "@sdd.shj.ae",
+                "@gmail.com"
+            };
+
+            var email = employeeDto.WorkEmail?.ToLower();
+
+            if (string.IsNullOrWhiteSpace(email) || !allowedDomains.Any(domain => email.EndsWith(domain)))
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Invalid work email domain. Allowed domains are: " + string.Join(", ", allowedDomains),
+                    StatusCode = 400
+                };
+            }
+
+
+            // First create the Identiy user
+            var user = new User
+            {
+                EmployeeName = employeeDto.EmployeeName,
+                Email = employeeDto.WorkEmail,
+                UserName = employeeDto.UserName,
+                PhoneNumber = employeeDto.PersonalPhone
+            };
+
+            var result = await _userManager.CreateAsync(user, employeeDto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+
+                return new ApiResponse(false, "User registration failed: " + string.Join(", ", errors), 400, errors);
+
+            }
+
+            await _userManager.AddToRoleAsync(user, "Employee");
+
+            //var employee = new Employee
+            //{
+            //    Email = employeeDto.Email,
+            //    FirstName = employeeDto.FirstName,
+            //    LastName = employeeDto.LastName,
+            //    UserName = employeeDto.UserName,
+            //    Phone = employeeDto.PhoneNumber,
+            //    IsActive = employeeDto.IsActive,
+            //    CreatedBy = employeeDto.CreatedBy,
+            //    CreatedDate = DateTime.UtcNow,
+            //    ModifiedBy = employeeDto.CreatedBy,
+            //    ModifiedDate = DateTime.UtcNow,
+            //    EmployeeRole = employeeDto.EmployeeRole
+            //};
+
+            // Map and create Employee
+            // Using Automapper
+            var employee = _mapper.Map<Employee>(employeeDto);
+            employee.CreatedDate = DateTime.UtcNow;
+            employee.CreatedBy = "admin";
+            employee.ModifiedDate = DateTime.UtcNow;
+            employee.EmployeeRole = "Employee"; // Force role to "Employee" for self-signup
+
+
+            await _context.Employees.AddAsync(employee);
+            await _context.SaveChangesAsync();
+
+            return new ApiResponse
+            {
+                IsSuccess = true,
+                Message = "Employee created successfully",
+                StatusCode = 201,
+                Response = employee
+            };
+        }
+
+
+
+
         public async Task<ApiResponse> CreateEmployee(EmployeeCreateDTO employeeDto)
         {
             // Validate work email domain

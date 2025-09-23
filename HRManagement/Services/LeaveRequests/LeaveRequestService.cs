@@ -25,69 +25,7 @@ namespace HRManagement.Services.LeaveRequests
             _emailService = emailService;
         }
 
-        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
-        {
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
-
-            if (employee == null)
-            {
-                return new ApiResponse(false, "Employee not found", 404, null);
-            }
-
-            
-            // Create a base query for LeaveRequests table
-            //var query = _context.LeaveRequests.AsQueryable();
-            var query = _context.LeaveRequests
-        .Where(r => r.EmployeeId == employee.EmployeeId);
-
-
-
-
-            // Apply filters if they are provided
-            if (filters.Status.HasValue)
-                query = query.Where(r => r.Status == filters.Status);
-
-            if (filters.StartDate.HasValue)
-                query = query.Where(r => r.StartDate >= filters.StartDate);
-
-            if (filters.EndDate.HasValue)
-                query = query.Where(r => r.EndDate <= filters.EndDate);
-
-            //if (filters.EmployeeId.HasValue)
-            //    query = query.Where(r => r.EmployeeId == filters.EmployeeId.Value);
-
-            // Fetch list based on filters and sort by RequestedOn (latest first)
-            var leaveRequests = await query
-                .OrderByDescending(r => r.RequestedOn)
-                .ToListAsync();
-
-            if (!leaveRequests.Any())
-            {
-                return new ApiResponse(false, "No leave requests found.", 404, null);
-            }
-
-            var responseDtos = leaveRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
-            {
-                LeaveRequestId = lr.LeaveRequestId,
-                EmployeeId = lr.EmployeeId,
-                LeaveTypeId = lr.LeaveTypeId,
-                StartDate = lr.StartDate,
-                EndDate = lr.EndDate,
-                Reason = lr.Reason,
-                Status = lr.Status,
-                ManagerRemarks = lr.ManagerRemarks,
-                RequestedOn = lr.RequestedOn,
-                ActionedOn = lr.ActionedOn,
-                LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-                TemporaryBlobUrls = lr.LeaveRequestFileNames?
-                    .Where(fileName => !string.IsNullOrEmpty(fileName))
-                    .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList()
-            }).ToList();
-
-            return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
-        }
+        
 
 
         
@@ -220,7 +158,69 @@ namespace HRManagement.Services.LeaveRequests
         }
 
 
+        public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
+        {
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
 
+            if (employee == null)
+            {
+                return new ApiResponse(false, "Employee not found", 404, null);
+            }
+
+
+            // Create a base query for LeaveRequests table
+            //var query = _context.LeaveRequests.AsQueryable();
+            var query = _context.LeaveRequests
+        .Where(r => r.EmployeeId == employee.EmployeeId);
+
+
+
+
+            // Apply filters if they are provided
+            if (filters.Status.HasValue)
+                query = query.Where(r => r.Status == filters.Status);
+
+            if (filters.StartDate.HasValue)
+                query = query.Where(r => r.StartDate >= filters.StartDate);
+
+            if (filters.EndDate.HasValue)
+                query = query.Where(r => r.EndDate <= filters.EndDate);
+
+            //if (filters.EmployeeId.HasValue)
+            //    query = query.Where(r => r.EmployeeId == filters.EmployeeId.Value);
+
+            // Fetch list based on filters and sort by RequestedOn (latest first)
+            var leaveRequests = await query
+                .OrderByDescending(r => r.RequestedOn)
+                .ToListAsync();
+
+            if (!leaveRequests.Any())
+            {
+                return new ApiResponse(false, "No leave requests found.", 404, null);
+            }
+
+            var responseDtos = leaveRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
+            {
+                LeaveRequestId = lr.LeaveRequestId,
+                EmployeeId = lr.EmployeeId,
+                LeaveTypeId = lr.LeaveTypeId,
+                StartDate = lr.StartDate,
+                EndDate = lr.EndDate,
+                Reason = lr.Reason,
+                Status = lr.Status,
+                ManagerRemarks = lr.ManagerRemarks,
+                RequestedOn = lr.RequestedOn,
+                ActionedOn = lr.ActionedOn,
+                LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+                TemporaryBlobUrls = lr.LeaveRequestFileNames?
+                    .Where(fileName => !string.IsNullOrEmpty(fileName))
+                    .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+                    .ToList()
+            }).ToList();
+
+            return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
+        }
 
 
 
