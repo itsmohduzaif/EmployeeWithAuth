@@ -831,6 +831,7 @@ namespace HRManagement.Services.LeaveRequests
 
         public async Task<ApiResponse> RevertApprovalAsync(int requestId, RemarksDto dto)
         {
+            Console.WriteLine("\n\n\n\n\nweeeeeeeeeeeeeeee");
             var req = await _context.LeaveRequests.FindAsync(requestId);
             if (req == null) return new ApiResponse(false, "Request not found.", 404, null);
 
