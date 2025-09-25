@@ -39,6 +39,13 @@ namespace HRManagement.Data
 
 
 
+            // Configure the LeaveDaysUsed property in LeaveRequest entity for the precision and scale, because otherwise it gives warning in console.
+            builder.Entity<LeaveRequest>()
+                .Property(lr => lr.LeaveDaysUsed)
+                .HasColumnType("decimal(18,2)");  // Precision of 18 and scale of 2
+
+
+
 
         }
 

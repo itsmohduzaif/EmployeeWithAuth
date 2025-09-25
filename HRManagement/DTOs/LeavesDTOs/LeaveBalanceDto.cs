@@ -5,8 +5,8 @@
         public int LeaveTypeId { get; set; }
         public string LeaveTypeName { get; set; }
         public int DefaultAnnualAllocation { get; set; }
-        public int Used { get; set; }
-        public int Remaining { get; set; }
+        public decimal Used { get; set; }
+        public decimal Remaining { get; set; }
     }
 
 }

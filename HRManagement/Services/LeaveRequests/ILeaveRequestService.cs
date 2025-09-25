@@ -15,7 +15,7 @@ namespace HRManagement.Services.LeaveRequests
         Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim);
         // Manager endpoints
         Task<ApiResponse> GetAllLeaveRequestsAsync(GetLeaveRequestsForAdminFilterDto filters);
-        Task<ApiResponse> GetPendingLeaveRequests();
+        //Task<ApiResponse> GetPendingLeaveRequests();
         Task<ApiResponse> GetPendingLeaveApprovalCountAsync();
         Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto);
         Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto);

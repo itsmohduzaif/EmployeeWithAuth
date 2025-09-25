@@ -56,8 +56,8 @@ public class TestExceptionController : ControllerBase
     [HttpGet("check-leave-days")]
     public async Task<IActionResult> CheckLeaveDays()
     {
-        DateTime startDate = new DateTime(2025, 9, 19, 14, 30, 0);
-        DateTime endDate = new DateTime(2025, 9, 22, 13, 30, 0);
+        DateTime startDate = new DateTime(2025, 9, 22, 15, 30, 0);
+        DateTime endDate = new DateTime(2025, 9, 24, 13, 1, 0);
         decimal effectiveLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(startDate, endDate);
         return Ok($"Endpoint Executed, the value of effectiveLeaveDays is: {effectiveLeaveDays}");
     }

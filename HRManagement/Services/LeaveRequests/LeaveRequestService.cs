@@ -1,9 +1,12 @@
-﻿using HRManagement.Data;
+﻿using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Presentation;
+using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves;
 using HRManagement.DTOs.Leaves.LeaveRequest;
 using HRManagement.Entities;
 using HRManagement.Enums;
+using HRManagement.Helpers;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
 using HRManagement.Services.Emails;
@@ -24,8 +27,8 @@ namespace HRManagement.Services.LeaveRequests
             _containerNameForLeaveRequestFiles = configuration["AzureBlobStorage:LeaveRequestFilesContainerName"];
             _emailService = emailService;
         }
-
         
+
 
 
         
@@ -62,10 +65,50 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            // Code to check leave balance
-            var sumOfUsedLeaves = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
-                .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+            // Previous logic
+            //// Code to check leave balance
+            //var sumOfUsedLeaves = await _context.LeaveRequests
+            //    .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+            //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+            //// Get the default annual allocation for this leave type
+            //var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
+            //if (leaveType == null)
+            //{
+            //    return new ApiResponse(false, "Leave type not found.", 404, null);
+            //}
+
+            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            //if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            //{
+            //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+            //}
+
+            //// Calculate the number of days for the current leave request
+            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+
+            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            //{
+            //    return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
+            //}
+
+
+
+
+
+
+            // New logicode that uses leaveDaysUsed field
+            //// Code to check for
+            var sumOfLeaveDaysUsed = await _context.LeaveRequests
+                                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+                                .SumAsync(r => r.LeaveDaysUsed);
+
+            Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
+            ////
+
+
+
 
             // Get the default annual allocation for this leave type
             var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
@@ -76,19 +119,45 @@ namespace HRManagement.Services.LeaveRequests
 
             var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-            if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            }
+            }   
 
             // Calculate the number of days for the current leave request
-            int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
 
-            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
+
+            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
             }
 
+            Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
+
+
+
+
+
+            // Special check (Asked by Malar): If Sick Leave (id=2) and more than 2 days, ensure at least one file is uploaded
+
+            // Check the LeaveTypeId that corresponds to Sick Leave from the LeaveTypes table in the database before relying on this condition.
+            var sickLeaveTypeId = await _context.LeaveTypes
+                .Where(lt => lt.LeaveTypeName.ToLower() == "sick leave")
+                .Select(lt => lt.LeaveTypeId)
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
+
+            if (dto.LeaveTypeId == sickLeaveTypeId && requestedLeaveDays > 2)
+            {
+                if (dto.Files == null || !dto.Files.Any())
+                {
+                    return new ApiResponse(false, "For Sick Leave more than 2 days, uploading a medical certificate is mandatory.", 400, null);
+                }
+            }
+            // Note: This check will only work if the Sick Leave Type is present with name as "Sick Leave" in the LeaveTypes table.
 
 
 
@@ -107,7 +176,7 @@ namespace HRManagement.Services.LeaveRequests
 
                 foreach (var file in dto.Files)
                 {
-                    var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
                     if (!allowedExtensions.Contains(fileExtension))
                     {
                         return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
@@ -127,13 +196,14 @@ namespace HRManagement.Services.LeaveRequests
                     }
 
                     // Generate a unique file name for each file
-                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
 
                     // Upload the file to Azure Blob Storage
                     string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
                     fileNames.Add(blobName); // Collect the blob names
                 }
             }
+
 
 
 
@@ -148,14 +218,55 @@ namespace HRManagement.Services.LeaveRequests
                 Status = LeaveRequestStatus.Pending,
                 ManagerRemarks = null,
                 RequestedOn = DateTime.UtcNow,
-                LeaveRequestFileNames = fileNames // Store the file names as a List<string>
+                LeaveRequestFileNames = fileNames, // Store the file names as a List<string>
+                LeaveDaysUsed = requestedLeaveDays
             };
+
+            ////
+            // Special Condition (Asked by Malar) : To Automatically approve the sick leave if its upto 2 days attached.
+            if (requestedLeaveDays <= 2 && dto.LeaveTypeId == sickLeaveTypeId)
+            {
+                leaveRequest.Status = LeaveRequestStatus.Approved;
+
+                // Send email notification to employee
+                int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
+
+
+                string subject = "Leave Request Approved";
+
+                string body = "";
+                if (dto.StartDate.Date == dto.EndDate.Date)
+                {
+                    body =
+                        $"Hi {employee.EmployeeName},\n\n" +
+                        $"Your leave request on {dto.StartDate:dd-MMM-yyyy} has been auto approved by the system for 1 day.\n\n" +
+                        $"Wishing you a speedy recovery and hope you feel better soon.\n\n" +
+                        "Take Care.";
+                }
+                else
+                {
+                    body =
+                        $"Hi {employee.EmployeeName},\n\n" +
+                        $"Your leave request from {dto.StartDate:dd-MMM-yyyy} to {dto.EndDate:dd-MMM-yyyy} has been auto approved by the system for {daysApproved} days.\n\n" +
+                        $"Wishing you a speedy recovery and hope you feel better soon.\n\n" +
+                        "Take Care.";
+                }
+
+                _emailService.SendEmail(employee.WorkEmail, subject, body);
+
+            }
+            ////
+
+
 
             await _context.LeaveRequests.AddAsync(leaveRequest);
             await _context.SaveChangesAsync();
 
             return new ApiResponse(true, "Leave request submitted.", 201, leaveRequest);
         }
+
+
+
 
 
         public async Task<ApiResponse> GetLeaveRequestsForEmployeeAsync(string usernameFromClaim, GetLeaveRequestsForEmployeeFilterDto filters)
@@ -216,7 +327,8 @@ namespace HRManagement.Services.LeaveRequests
                 TemporaryBlobUrls = lr.LeaveRequestFileNames?
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList()
+                    .ToList(),
+                LeaveDaysUsed = lr.LeaveDaysUsed
             }).ToList();
 
             return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
@@ -287,11 +399,46 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
+            //// Previous logic
+            //// Code to check leave balance
+            //var sumOfUsedLeaves = await _context.LeaveRequests
+            //    .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved)
+            //    .SumAsync(lr => EF.Functions.DateDiffDay(lr.StartDate, lr.EndDate) + 1);
 
+            //// Get the default annual allocation for this leave type
+            //var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
+            //if (leaveType == null)
+            //{
+            //    return new ApiResponse(false, "Leave type not found.", 404, null);
+            //}
+
+            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            //if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            //{
+            //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+            //}
+
+            //// Calculate the number of days for the current leave request
+            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+
+            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            //{
+            //    return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
+            //}
+
+
+
+
+
+
+            // New logic that uses leaveDaysUsed field
             // Code to check leave balance
-            var sumOfUsedLeaves = await _context.LeaveRequests
+            var sumOfLeaveDaysUsed = await _context.LeaveRequests
                 .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved)
-                .SumAsync(lr => EF.Functions.DateDiffDay(lr.StartDate, lr.EndDate) + 1);
+                .SumAsync(lr => lr.LeaveDaysUsed);
+
+            Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
 
             // Get the default annual allocation for this leave type
             var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
@@ -302,22 +449,40 @@ namespace HRManagement.Services.LeaveRequests
 
             var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-            if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
             }
 
             // Calculate the number of days for the current leave request
-            int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
 
-            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
             }
 
 
 
+            // Special check (Asked by Malar): If Sick Leave (id=2) and more than 2 days, ensure at least one file is uploaded
 
+            // Check the LeaveTypeId that corresponds to Sick Leave from the LeaveTypes table in the database before relying on this condition.
+            var sickLeaveTypeId = await _context.LeaveTypes
+                .Where(lt => lt.LeaveTypeName.ToLower() == "sick leave")
+                .Select(lt => lt.LeaveTypeId)
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
+
+            if (dto.LeaveTypeId == sickLeaveTypeId && requestedLeaveDays > 2)
+            {
+                if (dto.Files == null || !dto.Files.Any())
+                {
+                    return new ApiResponse(false, "For Sick Leave more than 2 days, uploading a medical certificate is mandatory.", 400, null);
+                }
+            }
+            // Note: This check will only work if the Sick Leave Type is present with name as "Sick Leave" in the LeaveTypes table.
 
 
 
@@ -362,7 +527,7 @@ namespace HRManagement.Services.LeaveRequests
 
                 foreach (var file in dto.Files)
                 {
-                    var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
                     if (!allowedExtensions.Contains(fileExtension))
                     {
                         return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
@@ -382,7 +547,7 @@ namespace HRManagement.Services.LeaveRequests
                     }
 
                     // Generate a unique file name for each file
-                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
 
                     // Upload the file to Azure Blob Storage
                     string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
@@ -400,6 +565,50 @@ namespace HRManagement.Services.LeaveRequests
             req.Reason = dto.Reason;
             req.LeaveTypeId = dto.LeaveTypeId;
             req.LeaveRequestFileNames = fileNames; // Update with new file names
+            req.LeaveDaysUsed = requestedLeaveDays;
+
+
+
+            ////
+            // Special Condition (Asked by Malar) : To Automatically approve the sick leave if its upto 2 days attached.
+            if (requestedLeaveDays <= 2 && dto.LeaveTypeId == sickLeaveTypeId)
+            {
+                req.Status = LeaveRequestStatus.Approved;
+
+                // Send email notification to employee
+                int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
+
+
+                string subject = "Leave Request Approved";
+
+                string body = "";
+                if (dto.StartDate.Date == dto.EndDate.Date)
+                {
+                    body =
+                        $"Hi {employee.EmployeeName},\n\n" +
+                        $"Your leave request on {dto.StartDate:dd-MMM-yyyy} has been auto approved by the system for 1 day.\n\n" +
+                        $"Wishing you a speedy recovery and hope you feel better soon.\n\n" +
+                        "Take Care.";
+                }
+                else
+                {
+                    body =
+                        $"Hi {employee.EmployeeName},\n\n" +
+                        $"Your leave request from {dto.StartDate:dd-MMM-yyyy} to {dto.EndDate:dd-MMM-yyyy} has been auto approved by the system for {daysApproved} days.\n\n" +
+                        $"Wishing you a speedy recovery and hope you feel better soon.\n\n" +
+                        "Take Care.";
+                }
+
+                _emailService.SendEmail(employee.WorkEmail, subject, body);
+
+            }
+            ////
+
+
+
+
+
+
 
             await _context.SaveChangesAsync();
             return new ApiResponse(true, "Request updated.", 200, req);
@@ -450,13 +659,23 @@ namespace HRManagement.Services.LeaveRequests
 
             foreach (var lt in leaveTypes)
             {
+                // Old Logic
+                //// Only count approved leaves for this employee & leave type, and for the current year
+                //var used = await _context.LeaveRequests
+                //    .Where(r => r.EmployeeId == employee.EmployeeId
+                //             && r.LeaveTypeId == lt.LeaveTypeId
+                //             && r.Status == LeaveRequestStatus.Approved
+                //             && r.StartDate.Year == DateTime.UtcNow.Year) // If annual allocation
+                //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+                // New Logic that uses LeaveDaysUsed field
                 // Only count approved leaves for this employee & leave type, and for the current year
                 var used = await _context.LeaveRequests
                     .Where(r => r.EmployeeId == employee.EmployeeId
                              && r.LeaveTypeId == lt.LeaveTypeId
                              && r.Status == LeaveRequestStatus.Approved
                              && r.StartDate.Year == DateTime.UtcNow.Year) // If annual allocation
-                    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+                    .SumAsync(r => r.LeaveDaysUsed);
 
 
                 balances.Add(new LeaveBalanceDto
@@ -465,8 +684,8 @@ namespace HRManagement.Services.LeaveRequests
                     LeaveTypeName = lt.LeaveTypeName,
                     DefaultAnnualAllocation = lt.DefaultAnnualAllocation,
                     Used = used,
-                    Remaining = lt.DefaultAnnualAllocation - used
-                });
+                    Remaining = lt.DefaultAnnualAllocation - used               // implicit conversion from int to decimal because decimal has a higher precision and is able to handle larger ranges of values.
+                });                                                             // so not doing any explicit conversion here.
             }
 
             //DateTime dateTime = DateTime.UtcNow;
@@ -519,7 +738,8 @@ namespace HRManagement.Services.LeaveRequests
                 TemporaryBlobUrls = lr.LeaveRequestFileNames?
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList()
+                    .ToList(),
+                LeaveDaysUsed = lr.LeaveDaysUsed
             }).ToList();
 
             return new ApiResponse(true, "Upcoming leaves fetched successfully.", 200, responseDtos);
@@ -597,7 +817,8 @@ namespace HRManagement.Services.LeaveRequests
                 TemporaryBlobUrls = lr.LeaveRequestFileNames?
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList()
+                    .ToList(),
+                LeaveDaysUsed = lr.LeaveDaysUsed
             }).ToList();
 
             return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
@@ -606,45 +827,46 @@ namespace HRManagement.Services.LeaveRequests
 
 
         //Get all pending leave requests 
-        public async Task<ApiResponse> GetPendingLeaveRequests()
-        {
-            // For demo: fetch all pending (customize with your reporting structure)
-            var pendingRequests = await _context.LeaveRequests
-                .Where(r => r.Status == LeaveRequestStatus.Pending)
-                .OrderBy(r => r.StartDate)
-                .ToListAsync();
+        //public async Task<ApiResponse> GetPendingLeaveRequests()
+        //{
+        //    // For demo: fetch all pending (customize with your reporting structure)
+        //    var pendingRequests = await _context.LeaveRequests
+        //        .Where(r => r.Status == LeaveRequestStatus.Pending)
+        //        .OrderBy(r => r.StartDate)
+        //        .ToListAsync();
 
-            if (!pendingRequests.Any())
-            {
-                return new ApiResponse(false, "No pending leave requests found.", 404, null);
-            }
+        //    if (!pendingRequests.Any())
+        //    {
+        //        return new ApiResponse(false, "No pending leave requests found.", 404, null);
+        //    }
 
-            var responseDtos = pendingRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
-            {
-                LeaveRequestId = lr.LeaveRequestId,
-                EmployeeId = lr.EmployeeId,
-                LeaveTypeId = lr.LeaveTypeId,
-                StartDate = lr.StartDate,
-                EndDate = lr.EndDate,
-                Reason = lr.Reason,
-                Status = lr.Status,
-                ManagerRemarks = lr.ManagerRemarks,
-                RequestedOn = lr.RequestedOn,
-                ActionedOn = lr.ActionedOn,
-                LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-                TemporaryBlobUrls = lr.LeaveRequestFileNames?
-                    .Where(fileName => !string.IsNullOrEmpty(fileName))
-                    .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList()
-            }).ToList();
+        //    var responseDtos = pendingRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
+        //    {
+        //        LeaveRequestId = lr.LeaveRequestId,
+        //        EmployeeId = lr.EmployeeId,
+        //        LeaveTypeId = lr.LeaveTypeId,
+        //        StartDate = lr.StartDate,
+        //        EndDate = lr.EndDate,
+        //        Reason = lr.Reason,
+        //        Status = lr.Status,
+        //        ManagerRemarks = lr.ManagerRemarks,
+        //        RequestedOn = lr.RequestedOn,
+        //        ActionedOn = lr.ActionedOn,
+        //        LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+        //        TemporaryBlobUrls = lr.LeaveRequestFileNames?
+        //            .Where(fileName => !string.IsNullOrEmpty(fileName))
+        //            .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+        //            .ToList(),
+        //        LeaveDaysUsed = lr.LeaveDaysUsed
+        //    }).ToList();
 
-            return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
+        //    return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
 
 
 
 
-            //return new ApiResponse(true, "Pending requests fetched.", 200, pending);
-        }
+        //    //return new ApiResponse(true, "Pending requests fetched.", 200, pending);
+        //}
 
 
 
@@ -654,7 +876,7 @@ namespace HRManagement.Services.LeaveRequests
                 .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
 
             return new ApiResponse(true, "Pending leave approval count fetched successfully.", 200, count);
-        }
+        }   
 
 
 
@@ -694,10 +916,33 @@ namespace HRManagement.Services.LeaveRequests
                 return new ApiResponse(false, "There is already an overlapping pending/approved leave request for this employee.", 400, null);
 
 
+            // Old Logic
+            //// --- Leave balance validation ---
+            //var sumOfUsedLeaves = await _context.LeaveRequests
+            //    .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+            //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+
+            //var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);
+            //if (leaveType == null)
+            //{
+            //    return new ApiResponse(false, "Leave type not found.", 404, null);
+            //}
+            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+
+            //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
+
+            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            //{
+            //    return new ApiResponse(false, "Leave balance is insufficient for approval.", 400, null);
+            //}
+
+
+
+            // New Logic that uses LeaveDaysUsed field
             // --- Leave balance validation ---
-            var sumOfUsedLeaves = await _context.LeaveRequests
+            var sumOfLeaveDaysUsed = await _context.LeaveRequests
                 .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
-                .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
+                .SumAsync(r => r.LeaveDaysUsed);
 
             var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);
             if (leaveType == null)
@@ -706,12 +951,21 @@ namespace HRManagement.Services.LeaveRequests
             }
             var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-            int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
+            //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate);
 
-            if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+
+            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Leave balance is insufficient for approval.", 400, null);
             }
+
+
+
+
+
+
+
 
 
 
@@ -722,7 +976,7 @@ namespace HRManagement.Services.LeaveRequests
 
             // Extra: validate overlapping after updates or with new approvals
 
-            
+
 
             //// Update leave balance
             //var leaveBalance = await _context.LeaveBalances.FirstOrDefaultAsync(lb => lb.EmployeeId == req.EmployeeId && lb.LeaveTypeId == req.LeaveTypeId);
@@ -956,7 +1210,8 @@ namespace HRManagement.Services.LeaveRequests
                     TemporaryBlobUrls = lr.LeaveRequestFileNames?
                         .Where(fileName => !string.IsNullOrEmpty(fileName))
                         .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                        .ToList()
+                        .ToList(),
+                    lr.LeaveDaysUsed
                 });
             }
 
@@ -1022,7 +1277,8 @@ namespace HRManagement.Services.LeaveRequests
                     TemporaryBlobUrls = lr.LeaveRequestFileNames?
                         .Where(fileName => !string.IsNullOrEmpty(fileName))
                         .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                        .ToList()
+                        .ToList(),
+                    lr.LeaveDaysUsed
                 });
             }
 

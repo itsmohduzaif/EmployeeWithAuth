@@ -26,32 +26,52 @@ namespace HRManagement.Helpers
 
             if (StartDate.Date == EndDate.Date)
             {
-                var totalHours = (EndDate - StartDate).TotalHours;
+                if (StartDate.DayOfWeek == DayOfWeek.Saturday || StartDate.DayOfWeek == DayOfWeek.Sunday) return 0m;
+                //var totalHours = (EndDate - StartDate).TotalHours;
 
-                if (totalHours <= 4)
-                {
-                    return 0.5m; // Half day leave
-                }
-                else
-                {
-                    return 1m; // Full day leave
-                }
+                //if (totalHours <= 4)
+                //{
+                //    return 0.5m; // Half day leave
+                //}
+                //else
+                //{
+                //    return 1m; // Full day leave
+                //}
+
+                bool isStartDateAHalfDay = CheckIfStartDateIsHalfDay(StartDate);
+                if (isStartDateAHalfDay) return 0.5m;
+
+                bool isEndDateAHalfDay = CheckIfEndDateIsHalfDay(EndDate);
+
+                if (isEndDateAHalfDay) return 0.5m;
+
+                return 1m; // Full day leave if neither is half day
+
 
             }
             else
             {
-                bool isStartDateAHalfDay = CheckIfStartDateIsHalfDay(StartDate);
+                if (StartDate.DayOfWeek != DayOfWeek.Saturday && StartDate.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    bool isStartDateAHalfDay = CheckIfStartDateIsHalfDay(StartDate);
 
-                if (isStartDateAHalfDay) leaveDaysUsed += 0.5m;
-                else leaveDaysUsed += 1m;
-
-                bool isEndDateAHalfDay = CheckIfEndDateIsHalfDay(EndDate);
-
-                if (isEndDateAHalfDay) leaveDaysUsed += 0.5m;
-                else leaveDaysUsed += 1m;
+                    if (isStartDateAHalfDay) leaveDaysUsed += 0.5m;
+                    else leaveDaysUsed += 1m;
+                }
 
 
-                for (DateTime date = StartDate.Date.AddDays(1); date <= EndDate.Date; date = date.AddDays(1))
+                if (EndDate.DayOfWeek != DayOfWeek.Saturday && EndDate.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    bool isEndDateAHalfDay = CheckIfEndDateIsHalfDay(EndDate);
+
+                    if (isEndDateAHalfDay) leaveDaysUsed += 0.5m;
+                    else leaveDaysUsed += 1m;
+                }
+
+                
+                Console.WriteLine($"\n\n\nInitial Leave Days Used (after start and end date calculation): {leaveDaysUsed}\n\n\n");
+
+                for (DateTime date = StartDate.Date.AddDays(1); date < EndDate.Date; date = date.AddDays(1))
                 {
                     if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
                     {
@@ -60,6 +80,9 @@ namespace HRManagement.Helpers
 
                     leaveDaysUsed += 1m;
 
+                    Console.WriteLine($"date: {date}    leaveDaysUsed:  {leaveDaysUsed}");
+
+    
                 }
 
 

@@ -95,13 +95,13 @@ namespace HRManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("pendingleaverequests")]
-        public async Task<IActionResult> GetPendingLeaveRequests()
-        {
-            var response = await _leaveRequestService.GetPendingLeaveRequests();
-            return StatusCode(response.StatusCode, response);
-        }
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("pendingleaverequests")]
+        //public async Task<IActionResult> GetPendingLeaveRequests()
+        //{
+        //    var response = await _leaveRequestService.GetPendingLeaveRequests();
+        //    return StatusCode(response.StatusCode, response);
+        //}
 
 
         [Authorize(Roles = "Admin")]
