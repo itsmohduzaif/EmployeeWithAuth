@@ -63,12 +63,12 @@ namespace HRManagement.Controllers
 
 
         [Authorize]
-        [HttpGet("balances")]
-        public async Task<IActionResult> GetLeaveBalancesForEmployee()
+        [HttpGet("balance/{year}")]
+        public async Task<IActionResult> GetLeaveBalancesForEmployee(int year)
         {
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
-            var response = await _leaveRequestService.GetLeaveBalancesForEmployeeAsync(usernameFromClaim);
+            var response = await _leaveRequestService.GetLeaveBalancesForEmployeeAsync(usernameFromClaim, year);
             return StatusCode(response.StatusCode, response);
         }
 

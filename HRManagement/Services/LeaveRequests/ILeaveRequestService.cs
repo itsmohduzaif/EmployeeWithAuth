@@ -11,7 +11,7 @@ namespace HRManagement.Services.LeaveRequests
         Task<ApiResponse> CreateLeaveRequestAsync(CreateLeaveRequestDto dto, string usernameFromClaim);
         Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim);
         Task<ApiResponse> CancelLeaveRequestAsync(int requestId, string usernameFromClaim);
-        Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim);
+        Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim, int year);
         Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim);
         // Manager endpoints
         Task<ApiResponse> GetAllLeaveRequestsAsync(GetLeaveRequestsForAdminFilterDto filters);

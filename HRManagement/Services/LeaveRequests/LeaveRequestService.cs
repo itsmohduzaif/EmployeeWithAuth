@@ -48,6 +48,12 @@ namespace HRManagement.Services.LeaveRequests
             if (dto.EndDate < dto.StartDate)
                 return new ApiResponse(false, "End date can't be before start date.", 400, null);
 
+            // Check if the leave request spans multiple years
+            if (dto.StartDate.Year != dto.EndDate.Year)
+            {
+                return new ApiResponse(false, "Leave requests spanning multiple years are not allowed. Please create separate requests for each year.", 400, null);
+            }
+
             // Check for overlapping requests for this employee and leave type (Pending or Approved only)
             var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
                 r.EmployeeId == EmployeeId &&
@@ -65,43 +71,15 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            // Previous logic
-            //// Code to check leave balance
-            //var sumOfUsedLeaves = await _context.LeaveRequests
-            //    .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
-            //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
-
-            //// Get the default annual allocation for this leave type
-            //var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
-            //if (leaveType == null)
-            //{
-            //    return new ApiResponse(false, "Leave type not found.", 404, null);
-            //}
-
-            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
-
-            //if (sumOfUsedLeaves >= defaultAnnualAllocation)
-            //{
-            //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            //}
-
-            //// Calculate the number of days for the current leave request
-            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
-
-            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
-            //{
-            //    return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
-            //}
 
 
 
-
-
-
+            // New logic for 
             // New logicode that uses leaveDaysUsed field
             //// Code to check for
             var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+                                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved
+                                && r.StartDate.Year == dto.StartDate.Year)
                                 .SumAsync(r => r.LeaveDaysUsed);
 
             Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
@@ -122,7 +100,7 @@ namespace HRManagement.Services.LeaveRequests
             if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
             {
                 return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            }   
+            }
 
             // Calculate the number of days for the current leave request
             var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
@@ -135,6 +113,32 @@ namespace HRManagement.Services.LeaveRequests
             }
 
             Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -372,6 +376,11 @@ namespace HRManagement.Services.LeaveRequests
                 return new ApiResponse(false, "Can only modify pending requests.", 400, null);
             }
 
+            // Check if the leave request spans multiple years
+            if (dto.StartDate.Year != dto.EndDate.Year)
+            {
+                return new ApiResponse(false, "Leave requests spanning multiple years are not allowed. Please create separate requests for each year.", 400, null);
+            }
 
 
 
@@ -435,7 +444,8 @@ namespace HRManagement.Services.LeaveRequests
             // New logic that uses leaveDaysUsed field
             // Code to check leave balance
             var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved)
+                .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved
+                && lr.StartDate.Year == dto.StartDate.Year)
                 .SumAsync(lr => lr.LeaveDaysUsed);
 
             Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
@@ -641,8 +651,8 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-
-        public async Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim)
+        // Getting leave balance for a particular year
+        public async Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim, int year)
         {
 
             Console.WriteLine($"\n\n\n\n{DateTime.UtcNow.Year}");
@@ -659,24 +669,14 @@ namespace HRManagement.Services.LeaveRequests
 
             foreach (var lt in leaveTypes)
             {
-                // Old Logic
-                //// Only count approved leaves for this employee & leave type, and for the current year
-                //var used = await _context.LeaveRequests
-                //    .Where(r => r.EmployeeId == employee.EmployeeId
-                //             && r.LeaveTypeId == lt.LeaveTypeId
-                //             && r.Status == LeaveRequestStatus.Approved
-                //             && r.StartDate.Year == DateTime.UtcNow.Year) // If annual allocation
-                //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
-
-                // New Logic that uses LeaveDaysUsed field
-                // Only count approved leaves for this employee & leave type, and for the current year
                 var used = await _context.LeaveRequests
                     .Where(r => r.EmployeeId == employee.EmployeeId
                              && r.LeaveTypeId == lt.LeaveTypeId
                              && r.Status == LeaveRequestStatus.Approved
-                             && r.StartDate.Year == DateTime.UtcNow.Year) // If annual allocation
+                             && r.StartDate.Year == year) // If annual allocation
                     .SumAsync(r => r.LeaveDaysUsed);
 
+                Console.WriteLine($"\n\n\n\n\n used: {used}");
 
                 balances.Add(new LeaveBalanceDto
                 {
@@ -888,6 +888,13 @@ namespace HRManagement.Services.LeaveRequests
             if (req.Status != LeaveRequestStatus.Pending)
                 return new ApiResponse(false, "Cannot approve this request.", 400, null);
 
+            // Check if the leave request spans multiple years
+            if (req.StartDate.Year != req.EndDate.Year)
+            {
+                return new ApiResponse(false, "Leave requests spanning multiple years are not allowed. Please create separate requests for each year.", 400, null);
+            }
+
+
 
 
 
@@ -941,7 +948,8 @@ namespace HRManagement.Services.LeaveRequests
             // New Logic that uses LeaveDaysUsed field
             // --- Leave balance validation ---
             var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
+                .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved
+                && r.StartDate.Year == req.StartDate.Year)
                 .SumAsync(r => r.LeaveDaysUsed);
 
             var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);

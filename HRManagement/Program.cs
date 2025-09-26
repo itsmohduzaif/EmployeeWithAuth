@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.Entities;
@@ -83,7 +84,7 @@ builder.Services.AddSingleton<EmployeeExcelExporter>();
 builder.Services.AddSingleton<EmployeeExcelImporter>();
 builder.Services.AddScoped<IEmployeeExcel, EmployeeExcel>();
 
-
+builder.Services.AddTransient<LeaveRequestHelper>();
 
 
 
