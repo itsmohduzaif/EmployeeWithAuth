@@ -20,12 +20,15 @@ namespace HRManagement.Services.LeaveRequests
         private readonly string _containerNameForLeaveRequestFiles;
         private readonly BlobStorageService _blobStorageService;
         private readonly EmailService _emailService;
-        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, EmailService emailService)
+        private readonly LeaveRequestHelper _leaveRequestHelper;   // Transient
+
+        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, EmailService emailService, LeaveRequestHelper leaveRequestHelper)
         {
             _context = context;
             _blobStorageService = blobStorageService;
             _containerNameForLeaveRequestFiles = configuration["AzureBlobStorage:LeaveRequestFilesContainerName"];
             _emailService = emailService;
+            _leaveRequestHelper = leaveRequestHelper;
         }
         
 
@@ -70,78 +73,17 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-
-
-
-
-            // New logic for 
-            // New logicode that uses leaveDaysUsed field
-            //// Code to check for
-            var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                                .Where(r => r.EmployeeId == EmployeeId && r.LeaveTypeId == dto.LeaveTypeId && r.Status == LeaveRequestStatus.Approved
-                                && r.StartDate.Year == dto.StartDate.Year)
-                                .SumAsync(r => r.LeaveDaysUsed);
-
-            Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
-            ////
-
-
-
-
-            // Get the default annual allocation for this leave type
-            var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
-            if (leaveType == null)
+            // Balance Validator
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceAsync(EmployeeId, dto);
+            if (!balanceCheckResponse.IsSuccess)
             {
-                return new ApiResponse(false, "Leave type not found.", 404, null);
+                return balanceCheckResponse;
             }
 
-            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
-
-            if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
-            {
-                return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            }
-
-            // Calculate the number of days for the current leave request
-            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
-
-            Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
-
-            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
-            {
-                return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
-            }
-
-            Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            
 
 
             // Special check (Asked by Malar): If Sick Leave (id=2) and more than 2 days, ensure at least one file is uploaded
@@ -152,7 +94,10 @@ namespace HRManagement.Services.LeaveRequests
                 .Select(lt => lt.LeaveTypeId)
                 .FirstOrDefaultAsync();
 
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+
             Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
+
 
             if (dto.LeaveTypeId == sickLeaveTypeId && requestedLeaveDays > 2)
             {
@@ -408,11 +353,18 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            //// Previous logic
+
+
+
+
+            //// New logic that uses leaveDaysUsed field
             //// Code to check leave balance
-            //var sumOfUsedLeaves = await _context.LeaveRequests
-            //    .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved)
-            //    .SumAsync(lr => EF.Functions.DateDiffDay(lr.StartDate, lr.EndDate) + 1);
+            //var sumOfLeaveDaysUsed = await _context.LeaveRequests
+            //    .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved
+            //    && lr.StartDate.Year == dto.StartDate.Year)
+            //    .SumAsync(lr => lr.LeaveDaysUsed);
+
+            //Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
 
             //// Get the default annual allocation for this leave type
             //var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
@@ -423,55 +375,30 @@ namespace HRManagement.Services.LeaveRequests
 
             //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-            //if (sumOfUsedLeaves >= defaultAnnualAllocation)
+            //if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
             //{
             //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
             //}
 
             //// Calculate the number of days for the current leave request
-            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+            ////int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
+            //var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
 
-            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
+            //if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
             //{
             //    return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
             //}
 
 
 
-
-
-
-            // New logic that uses leaveDaysUsed field
-            // Code to check leave balance
-            var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved
-                && lr.StartDate.Year == dto.StartDate.Year)
-                .SumAsync(lr => lr.LeaveDaysUsed);
-
-            Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
-
-            // Get the default annual allocation for this leave type
-            var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
-            if (leaveType == null)
+            // Balance Validator
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForUpdateLeaveRequestAsync(EmployeeId, dto);
+            if (!balanceCheckResponse.IsSuccess)
             {
-                return new ApiResponse(false, "Leave type not found.", 404, null);
+                return balanceCheckResponse;
             }
 
-            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-            if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
-            {
-                return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            }
-
-            // Calculate the number of days for the current leave request
-            //int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
-            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
-
-            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
-            {
-                return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
-            }
 
 
 
@@ -482,6 +409,8 @@ namespace HRManagement.Services.LeaveRequests
                 .Where(lt => lt.LeaveTypeName.ToLower() == "sick leave")
                 .Select(lt => lt.LeaveTypeId)
                 .FirstOrDefaultAsync();
+
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
 
             Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
 
