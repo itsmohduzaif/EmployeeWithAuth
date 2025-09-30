@@ -192,30 +192,30 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 
 // Handle 415 Unsupported Media Type with custom response - as when no dto is being sent in the request body it gives an error with format other than ApiResponse
-app.Use(async (context, next) =>
-{
-    // Only intercept for POST/PUT/PATCH with a body
-    if (HttpMethods.IsPost(context.Request.Method) ||
-        HttpMethods.IsPut(context.Request.Method) ||
-        HttpMethods.IsPatch(context.Request.Method))
-    {
-        var contentType = context.Request.ContentType;
+// Currently not implemented it, i will implement it later when i get time
+//app.Use(async (context, next) =>
+//{
+//    // Only intercept for POST/PUT/PATCH with a body
+//    if (HttpMethods.IsPost(context.Request.Method) ||
+//        HttpMethods.IsPut(context.Request.Method) ||
+//        HttpMethods.IsPatch(context.Request.Method))
+//    {
+//        var contentType = context.Request.ContentType;
 
-        // If Content-Type is missing or not application/json
-        if (string.IsNullOrEmpty(contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
-        {
-            context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
-            context.Response.ContentType = "application/json";
+//        // If Content-Type is missing or not application/json
+//        if (string.IsNullOrEmpty(contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+//        {
+//            context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+//            context.Response.ContentType = "application/json";
 
-            var response = new ApiResponse(false, "Unsupported Media Type. Please set Content-Type to application/json.", 415, null);
-            await context.Response.WriteAsJsonAsync(response);
-            return; // short-circuit
-        }
-    }
+//            var response = new ApiResponse(false, "Unsupported Media Type. Please set Content-Type to application/json.", 415, null);
+//            await context.Response.WriteAsJsonAsync(response);
+//            return; // short-circuit
+//        }
+//    }
 
-    await next(); // continue to next middleware if content type is OK
-});
-
+//    await next(); // continue to next middleware if content type is OK
+//});
 
 
 

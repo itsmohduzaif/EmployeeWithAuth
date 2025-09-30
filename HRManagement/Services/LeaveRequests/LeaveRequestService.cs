@@ -61,7 +61,7 @@ namespace HRManagement.Services.LeaveRequests
             var overlapExists = await _context.LeaveRequests.AnyAsync(r =>
                 r.EmployeeId == EmployeeId &&
                 r.Status != LeaveRequestStatus.Rejected &&
-                r.Status != LeaveRequestStatus.Cancelled && 
+                r.Status != LeaveRequestStatus.Cancelled &&
                 (dto.StartDate >= r.StartDate && dto.StartDate <= r.EndDate ||
                  dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate ||
                  dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate)
@@ -83,7 +83,7 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            
+
 
 
             // Special check (Asked by Malar): If Sick Leave (id=2) and more than 2 days, ensure at least one file is uploaded
@@ -212,6 +212,7 @@ namespace HRManagement.Services.LeaveRequests
             await _context.SaveChangesAsync();
 
             return new ApiResponse(true, "Leave request submitted.", 201, leaveRequest);
+
         }
 
 
@@ -583,10 +584,6 @@ namespace HRManagement.Services.LeaveRequests
         // Getting leave balance for a particular year
         public async Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim, int year)
         {
-
-            Console.WriteLine($"\n\n\n\n{DateTime.UtcNow.Year}");
-            Console.WriteLine($"\n\n\n\n{DateTime.UtcNow}");
-
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
@@ -594,34 +591,74 @@ namespace HRManagement.Services.LeaveRequests
 
             var leaveTypes = await _context.LeaveTypes.ToListAsync();
 
+
+
+            // Finding default allocation for Annual
+            var leaveType = await _context.LeaveTypes.FindAsync(1);
+            if (leaveType == null)
+            {
+                return new ApiResponse(false, "Leave type not found.", 404, null);
+            }
+            var defaultAnnualAllocationOfAnnualLeave = leaveType.DefaultAnnualAllocation;
+
             var balances = new List<LeaveBalanceDto>();
 
             foreach (var lt in leaveTypes)
             {
-                var used = await _context.LeaveRequests
+                if (lt.LeaveTypeId != 1 && lt.LeaveTypeId != 3 && lt.LeaveTypeId != 4)
+                {
+                    var used = await _context.LeaveRequests
                     .Where(r => r.EmployeeId == employee.EmployeeId
                              && r.LeaveTypeId == lt.LeaveTypeId
                              && r.Status == LeaveRequestStatus.Approved
                              && r.StartDate.Year == year) // If annual allocation
                     .SumAsync(r => r.LeaveDaysUsed);
 
-                Console.WriteLine($"\n\n\n\n\n used: {used}");
+                    Console.WriteLine($"\n\n\n\n\n used of leave type ({lt.LeaveTypeName}) : {used}");
 
-                balances.Add(new LeaveBalanceDto
+                    balances.Add(new LeaveBalanceDto
+                    {
+                        LeaveTypeId = lt.LeaveTypeId,
+                        LeaveTypeName = lt.LeaveTypeName,
+                        DefaultAnnualAllocation = lt.DefaultAnnualAllocation,
+                        Used = used,
+                        Remaining = lt.DefaultAnnualAllocation - used               // implicit conversion from int to decimal because decimal has a higher precision and is able to handle larger ranges of values.
+                    });                                                             // so not doing any explicit conversion here.
+                } // if condition ends
+                else
                 {
-                    LeaveTypeId = lt.LeaveTypeId,
-                    LeaveTypeName = lt.LeaveTypeName,
-                    DefaultAnnualAllocation = lt.DefaultAnnualAllocation,
-                    Used = used,
-                    Remaining = lt.DefaultAnnualAllocation - used               // implicit conversion from int to decimal because decimal has a higher precision and is able to handle larger ranges of values.
-                });                                                             // so not doing any explicit conversion here.
+                    var used = await _context.LeaveRequests
+                    .Where(r => r.EmployeeId == employee.EmployeeId
+                             && r.LeaveTypeId == 1
+                             && r.Status == LeaveRequestStatus.Approved
+                             && r.StartDate.Year == year) // If annual allocation
+                    .SumAsync(r => r.LeaveDaysUsed) +
+                                await _context.LeaveRequests
+                    .Where(r => r.EmployeeId == employee.EmployeeId
+                             && r.LeaveTypeId == 3
+                             && r.Status == LeaveRequestStatus.Approved
+                             && r.StartDate.Year == year) // If annual allocation
+                    .SumAsync(r => r.LeaveDaysUsed) +
+                                await _context.LeaveRequests
+                    .Where(r => r.EmployeeId == employee.EmployeeId
+                             && r.LeaveTypeId == 4
+                             && r.Status == LeaveRequestStatus.Approved
+                             && r.StartDate.Year == year) // If annual allocation
+                    .SumAsync(r => r.LeaveDaysUsed);
+
+
+                    balances.Add(new LeaveBalanceDto
+                    {
+                        LeaveTypeId = lt.LeaveTypeId,
+                        LeaveTypeName = lt.LeaveTypeName,
+                        DefaultAnnualAllocation = defaultAnnualAllocationOfAnnualLeave,
+                        Used = used,
+                        Remaining = defaultAnnualAllocationOfAnnualLeave - used               // implicit conversion from int to decimal because decimal has a higher precision and is able to handle larger ranges of values.
+                    });                                                             // so not doing any explicit conversion here
+
+
+                }
             }
-
-            //DateTime dateTime = DateTime.UtcNow;
-            DateTime dateTime1 = new DateTime(2025, 7, 17, 0, 0, 0, DateTimeKind.Utc);
-            DateTime dateTime2 = new DateTime(2025, 7, 18, 0, 0, 0, DateTimeKind.Utc);
-
-            Console.WriteLine(dateTime1 - dateTime2);
 
             return new ApiResponse(true, "Leave balances fetched.", 200, balances);
         }
@@ -852,54 +889,15 @@ namespace HRManagement.Services.LeaveRequests
                 return new ApiResponse(false, "There is already an overlapping pending/approved leave request for this employee.", 400, null);
 
 
-            // Old Logic
-            //// --- Leave balance validation ---
-            //var sumOfUsedLeaves = await _context.LeaveRequests
-            //    .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved)
-            //    .SumAsync(r => EF.Functions.DateDiffDay(r.StartDate, r.EndDate) + 1);
 
-            //var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);
-            //if (leaveType == null)
-            //{
-            //    return new ApiResponse(false, "Leave type not found.", 404, null);
-            //}
-            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
+            
 
-            //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
-
-            //if (sumOfUsedLeaves + requestedLeaveDays > defaultAnnualAllocation)
-            //{
-            //    return new ApiResponse(false, "Leave balance is insufficient for approval.", 400, null);
-            //}
-
-
-
-            // New Logic that uses LeaveDaysUsed field
-            // --- Leave balance validation ---
-            var sumOfLeaveDaysUsed = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == req.EmployeeId && r.LeaveTypeId == req.LeaveTypeId && r.Status == LeaveRequestStatus.Approved
-                && r.StartDate.Year == req.StartDate.Year)
-                .SumAsync(r => r.LeaveDaysUsed);
-
-            var leaveType = await _context.LeaveTypes.FindAsync(req.LeaveTypeId);
-            if (leaveType == null)
+            // Balance Validator
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForApprovalOfLeaveRequestAsync(dto, req);
+            if (!balanceCheckResponse.IsSuccess)
             {
-                return new ApiResponse(false, "Leave type not found.", 404, null);
+                return balanceCheckResponse;
             }
-            var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
-
-            //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
-            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate);
-
-
-            if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
-            {
-                return new ApiResponse(false, "Leave balance is insufficient for approval.", 400, null);
-            }
-
-
-
-
 
 
 
