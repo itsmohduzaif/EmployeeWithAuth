@@ -192,13 +192,14 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 
 // Handle 415 Unsupported Media Type with custom response - as when no dto is being sent in the request body it gives an error with format other than ApiResponse
-// Currently not implemented it, i will implement it later when i get time
+// Will implement it later
 //app.Use(async (context, next) =>
 //{
 //    // Only intercept for POST/PUT/PATCH with a body
 //    if (HttpMethods.IsPost(context.Request.Method) ||
 //        HttpMethods.IsPut(context.Request.Method) ||
-//        HttpMethods.IsPatch(context.Request.Method))
+//        HttpMethods.IsPatch(context.Request.Method) ||
+//        HttpMethods.IsGet(context.Request.Method))
 //    {
 //        var contentType = context.Request.ContentType;
 
