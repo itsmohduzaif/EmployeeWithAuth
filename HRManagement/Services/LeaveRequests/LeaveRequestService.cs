@@ -1,4 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Presentation;
 using HRManagement.Data;
 using HRManagement.DTOs;
@@ -762,6 +764,8 @@ namespace HRManagement.Services.LeaveRequests
                 .OrderByDescending(r => r.RequestedOn)
                 .ToListAsync();
 
+
+
             if (!allRequests.Any())
             {
                 return new ApiResponse(false, "No leave requests found.", 404, null);
@@ -785,11 +789,11 @@ namespace HRManagement.Services.LeaveRequests
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
                 LeaveDaysUsed = lr.LeaveDaysUsed
+
             }).ToList();
 
             return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
         }
-
 
 
         //Get all pending leave requests 
@@ -1096,15 +1100,37 @@ namespace HRManagement.Services.LeaveRequests
             Console.WriteLine($"\n\n\n\n\n\nstartOfMonth.AddMonths(1): {startOfMonth.AddMonths(1)}, startOfMonth.AddMonths(1).AddDays(1): {startOfMonth.AddMonths(1).AddDays(1)}");
 
 
+            //var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
+            //    .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
+            //    lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth ||
+            //    lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth ||
+            //    lr.EndDate == startOfMonth ||
+            //    lr.StartDate == endOfMonth ||
+            //    lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
+            //    .OrderBy(r => r.StartDate)
+            //    .ToListAsync();
+
+
             var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
-                .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
-                lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth ||
-                lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth ||
-                lr.EndDate == startOfMonth ||
-                lr.StartDate == endOfMonth ||
-                lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
-                .OrderBy(r => r.StartDate)
-                .ToListAsync();
+                    .Where(lr => lr.Status == LeaveRequestStatus.Approved && // Ensure it's approved
+                                (
+                                    // Case 1: Leave request starts and ends within the current month
+                                    (lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
+
+                                    // Case 2: Leave request starts before the current month but ends within it
+                                    (lr.StartDate < startOfMonth && lr.EndDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
+
+                                    // Case 3: Leave request starts in this month but ends after it
+                                    (lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth && lr.EndDate > endOfMonth) ||
+
+                                    // Case 4: Leave request spans across the current month
+                                    (lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
+                                )
+                    )
+                    .OrderBy(r => r.StartDate)
+                    .ToListAsync();
+
+
 
 
             if (!approvedLeaveRequestsOfThisMonth.Any())

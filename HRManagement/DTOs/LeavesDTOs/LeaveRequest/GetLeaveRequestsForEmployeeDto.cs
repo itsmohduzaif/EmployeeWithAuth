@@ -21,5 +21,9 @@ namespace HRManagement.DTOs.Leaves.LeaveRequest
 
         // New field for leave days used (in decimal format)
         public decimal LeaveDaysUsed { get; set; }
+
+
+
+        
     }
 }

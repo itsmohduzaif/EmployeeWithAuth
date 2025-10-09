@@ -82,7 +82,7 @@ namespace HRManagement.Services.Accounts
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            string resetUrl = $"http://localhost:4040/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
+            string resetUrl = $"http://localhost:4200/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
 
 
 
