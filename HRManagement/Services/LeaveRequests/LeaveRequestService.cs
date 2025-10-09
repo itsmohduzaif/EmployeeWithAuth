@@ -263,6 +263,10 @@ namespace HRManagement.Services.LeaveRequests
                 return new ApiResponse(false, "No leave requests found.", 404, null);
             }
 
+
+            var leaveTypes = await _context.LeaveTypes.ToListAsync();
+            var leaveTypeDict = leaveTypes.ToDictionary(lt => lt.LeaveTypeId, lt => lt.LeaveTypeName);
+
             var responseDtos = leaveRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
             {
                 LeaveRequestId = lr.LeaveRequestId,
@@ -280,7 +284,11 @@ namespace HRManagement.Services.LeaveRequests
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
-                LeaveDaysUsed = lr.LeaveDaysUsed
+                LeaveDaysUsed = lr.LeaveDaysUsed,
+
+                // New Fields required by Venkatesh
+                EmployeeName = employee.EmployeeName,
+                LeaveTypeName = leaveTypeDict.TryGetValue(lr.LeaveTypeId, out var ltName) ? ltName : "Unknown"
             }).ToList();
 
             return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
@@ -766,6 +774,26 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
+
+            ////   New Update
+
+            // Fetch all employees (or only those involved if optimization needed)
+            var employees = await _context.Employees.ToListAsync();
+
+            var leaveTypes = await _context.LeaveTypes.ToListAsync();
+
+            // Create a dictionary for fast lookup
+            var employeeDict = employees.ToDictionary(e => e.EmployeeId, e => e.EmployeeName);
+
+            var leaveTypeDict = leaveTypes.ToDictionary(lt => lt.LeaveTypeId, lt => lt.LeaveTypeName);
+
+            ////
+
+
+
+
+
+
             if (!allRequests.Any())
             {
                 return new ApiResponse(false, "No leave requests found.", 404, null);
@@ -788,7 +816,9 @@ namespace HRManagement.Services.LeaveRequests
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
-                LeaveDaysUsed = lr.LeaveDaysUsed
+                LeaveDaysUsed = lr.LeaveDaysUsed,
+                EmployeeName = employeeDict.TryGetValue(lr.EmployeeId, out var name) ? name : "Unknown",
+                LeaveTypeName = leaveTypeDict.TryGetValue(lr.LeaveTypeId, out var ltName) ? ltName : "Unknown"
 
             }).ToList();
 

@@ -23,7 +23,9 @@ namespace HRManagement.DTOs.Leaves.LeaveRequest
         public decimal LeaveDaysUsed { get; set; }
 
 
+        // New Fields required by Venkatesh
+        public string EmployeeName { get; set; } = string.Empty;
+        public string LeaveTypeName { get; set; } = string.Empty;
 
-        
     }
 }
