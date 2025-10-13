@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250923065359_initial")]
-    partial class initial
+    [Migration("20251013064823_iniial")]
+    partial class iniial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -369,8 +369,14 @@ namespace HRManagement.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsEndDateHalfDay")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStartDateHalfDay")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("LeaveDaysUsed")
                         .HasColumnType("decimal(18,2)");
@@ -391,8 +397,8 @@ namespace HRManagement.Migrations
                     b.Property<DateTime>("RequestedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

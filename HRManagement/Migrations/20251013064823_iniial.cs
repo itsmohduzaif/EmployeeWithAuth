@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class iniial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -177,15 +177,17 @@ namespace HRManagement.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
                     LeaveTypeId = table.Column<int>(type: "int", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ManagerRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RequestedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ActionedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LeaveRequestFileNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LeaveDaysUsed = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    LeaveDaysUsed = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IsStartDateHalfDay = table.Column<bool>(type: "bit", nullable: false),
+                    IsEndDateHalfDay = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -7,8 +7,10 @@ namespace HRManagement.Models.Leaves
         public int LeaveRequestId { get; set; }
         public int EmployeeId { get; set; }
         public int LeaveTypeId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        //public DateTime StartDate { get; set; }
+        //public DateTime EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public string Reason { get; set; } = string.Empty;
         public LeaveRequestStatus Status { get; set; }
         public string? ManagerRemarks { get; set; }
@@ -21,6 +23,9 @@ namespace HRManagement.Models.Leaves
 
         // New field for leave days used (in decimal format)
         public decimal LeaveDaysUsed { get; set; }
+
+        public bool IsStartDateHalfDay { get; set; } = false; // New field
+        public bool IsEndDateHalfDay { get; set; } = false; // New field
 
 
     }

@@ -1,4 +1,4 @@
-﻿    using HRManagement.Data;
+﻿using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.DTOs.Leaves.LeaveRequest;
 using HRManagement.Enums;
@@ -38,14 +38,14 @@ namespace HRManagement.Helpers
 
                 var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-                // Check if the total used leave days exceed the annual allocation
-                if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
-                {
-                    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-                }
+                //// Check if the total used leave days exceed the annual allocation
+                //if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
+                //{
+                //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+                //}
 
                 // Calculate the requested leave days
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
                 Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
 
@@ -57,7 +57,7 @@ namespace HRManagement.Helpers
 
                 return new ApiResponse(true, "Leave balance is sufficient.", 200, null);
             } // if ends here 
-            else 
+            else
             {
                 // Get sum of leave days used for the employee, leave type, and approved requests in the same year
                 var sumOfLeaveDaysUsed = await _context.LeaveRequests
@@ -90,14 +90,14 @@ namespace HRManagement.Helpers
 
                 var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
-                // Check if the total used leave days exceed the annual allocation
-                if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
-                {
-                    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-                }
+                //// Check if the total used leave days exceed the annual allocation
+                //if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
+                //{
+                //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
+                //}
 
                 // Calculate the requested leave days
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
                 Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
 
@@ -114,11 +114,11 @@ namespace HRManagement.Helpers
 
 
 
-            
+
         }
 
 
-        
+
 
 
 
@@ -152,7 +152,7 @@ namespace HRManagement.Helpers
                 }
 
                 // Calculate the requested leave days
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
                 Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
 
@@ -204,7 +204,7 @@ namespace HRManagement.Helpers
                 }
 
                 // Calculate the requested leave days
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
                 Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");
 
@@ -239,7 +239,7 @@ namespace HRManagement.Helpers
                 var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
                 //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate, req.IsStartDateHalfDay, req.IsEndDateHalfDay);
 
 
                 if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
@@ -272,7 +272,7 @@ namespace HRManagement.Helpers
                 var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
 
                 //int requestedLeaveDays = (req.EndDate - req.StartDate).Days + 1;
-                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate);
+                var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(req.StartDate, req.EndDate, req.IsStartDateHalfDay, req.IsEndDateHalfDay);
 
 
                 Console.WriteLine($"\n\n\n {sumOfLeaveDaysUsed}  +   {requestedLeaveDays}    >      {defaultAnnualAllocation}");

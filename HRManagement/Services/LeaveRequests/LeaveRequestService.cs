@@ -1,4 +1,7 @@
-﻿using DocumentFormat.OpenXml.Drawing;
+﻿//Note: Check working of int daysApproved = req.EndDate.DayNumber - req.StartDate.DayNumber + 1;    in every endpoint
+
+
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Presentation;
@@ -23,7 +26,7 @@ namespace HRManagement.Services.LeaveRequests
         private readonly BlobStorageService _blobStorageService;
         private readonly EmailService _emailService;
         private readonly LeaveRequestHelper _leaveRequestHelper;   // Transient
-
+        
         public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, EmailService emailService, LeaveRequestHelper leaveRequestHelper)
         {
             _context = context;
@@ -53,7 +56,7 @@ namespace HRManagement.Services.LeaveRequests
             if (dto.EndDate < dto.StartDate)
                 return new ApiResponse(false, "End date can't be before start date.", 400, null);
 
-            // Check if the leave request spans multiple years
+            // Disallow leave spanning multiple years
             if (dto.StartDate.Year != dto.EndDate.Year)
             {
                 return new ApiResponse(false, "Leave requests spanning multiple years are not allowed. Please create separate requests for each year.", 400, null);
@@ -68,6 +71,8 @@ namespace HRManagement.Services.LeaveRequests
                  dto.EndDate >= r.StartDate && dto.EndDate <= r.EndDate ||
                  dto.StartDate <= r.StartDate && dto.EndDate >= r.EndDate)
             );      //r.LeaveTypeId == dto.LeaveTypeId &&    removed this condition to allow checking overlapping of different leave types
+
+
 
             if (overlapExists)
                 return new ApiResponse(false, "There is already an overlapping leave request.", 400, null);
@@ -96,7 +101,7 @@ namespace HRManagement.Services.LeaveRequests
                 .Select(lt => lt.LeaveTypeId)
                 .FirstOrDefaultAsync();
 
-            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
             Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
 
@@ -170,7 +175,9 @@ namespace HRManagement.Services.LeaveRequests
                 ManagerRemarks = null,
                 RequestedOn = DateTime.UtcNow,
                 LeaveRequestFileNames = fileNames, // Store the file names as a List<string>
-                LeaveDaysUsed = requestedLeaveDays
+                LeaveDaysUsed = requestedLeaveDays,
+                IsStartDateHalfDay = dto.IsStartDateHalfDay,
+                IsEndDateHalfDay = dto.IsEndDateHalfDay
             };
 
             ////
@@ -178,15 +185,16 @@ namespace HRManagement.Services.LeaveRequests
             if (requestedLeaveDays <= 2 && dto.LeaveTypeId == sickLeaveTypeId)
             {
                 leaveRequest.Status = LeaveRequestStatus.Approved;
+                leaveRequest.ActionedOn = DateTime.UtcNow;
 
                 // Send email notification to employee
-                int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
-
+                //int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
+                int daysApproved = dto.EndDate.DayNumber - dto.StartDate.DayNumber + 1;
 
                 string subject = "Leave Request Approved";
 
                 string body = "";
-                if (dto.StartDate.Date == dto.EndDate.Date)
+                if (dto.StartDate == dto.EndDate)
                 {
                     body =
                         $"Hi {employee.EmployeeName},\n\n" +
@@ -285,6 +293,8 @@ namespace HRManagement.Services.LeaveRequests
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
                 LeaveDaysUsed = lr.LeaveDaysUsed,
+                IsStartDateHalfDay = lr.IsStartDateHalfDay,
+                IsEndDateHalfDay = lr.IsEndDateHalfDay,
 
                 // New Fields required by Venkatesh
                 EmployeeName = employee.EmployeeName,
@@ -421,7 +431,7 @@ namespace HRManagement.Services.LeaveRequests
                 .Select(lt => lt.LeaveTypeId)
                 .FirstOrDefaultAsync();
 
-            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
+            var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
 
             Console.WriteLine($"\n\n\n The Leave Type Id for Sick Leave is: {sickLeaveTypeId}");
 
@@ -524,15 +534,17 @@ namespace HRManagement.Services.LeaveRequests
             if (requestedLeaveDays <= 2 && dto.LeaveTypeId == sickLeaveTypeId)
             {
                 req.Status = LeaveRequestStatus.Approved;
+                req.ActionedOn = DateTime.UtcNow;
 
                 // Send email notification to employee
-                int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
+                //int daysApproved = (int)(dto.EndDate - dto.StartDate).TotalDays + 1;
+                int daysApproved = dto.EndDate.DayNumber - dto.StartDate.DayNumber + 1;
 
 
                 string subject = "Leave Request Approved";
 
                 string body = "";
-                if (dto.StartDate.Date == dto.EndDate.Date)
+                if (dto.StartDate == dto.EndDate)
                 {
                     body =
                         $"Hi {employee.EmployeeName},\n\n" +
@@ -686,10 +698,12 @@ namespace HRManagement.Services.LeaveRequests
                 return new ApiResponse(false, "Employee not found", 404, null);
             }
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
             var upcomingLeaves = await _context.LeaveRequests
                 .Where(r => r.EmployeeId == employee.EmployeeId
                             && r.Status == LeaveRequestStatus.Approved
-                            && r.StartDate >= DateTime.UtcNow.Date)
+                            && r.StartDate >= today)
                 .OrderBy(r => r.StartDate)
                 .ToListAsync();
 
@@ -715,7 +729,9 @@ namespace HRManagement.Services.LeaveRequests
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
-                LeaveDaysUsed = lr.LeaveDaysUsed
+                LeaveDaysUsed = lr.LeaveDaysUsed,
+                IsStartDateHalfDay = lr.IsStartDateHalfDay,
+                IsEndDateHalfDay = lr.IsEndDateHalfDay,
             }).ToList();
 
             return new ApiResponse(true, "Upcoming leaves fetched successfully.", 200, responseDtos);
@@ -817,6 +833,8 @@ namespace HRManagement.Services.LeaveRequests
                     .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                     .ToList(),
                 LeaveDaysUsed = lr.LeaveDaysUsed,
+                IsStartDateHalfDay = lr.IsStartDateHalfDay,
+                IsEndDateHalfDay = lr.IsEndDateHalfDay,
                 EmployeeName = employeeDict.TryGetValue(lr.EmployeeId, out var name) ? name : "Unknown",
                 LeaveTypeName = leaveTypeDict.TryGetValue(lr.LeaveTypeId, out var ltName) ? ltName : "Unknown"
 
@@ -876,7 +894,7 @@ namespace HRManagement.Services.LeaveRequests
                 .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
 
             return new ApiResponse(true, "Pending leave approval count fetched successfully.", 200, count);
-        }   
+        }
 
 
 
@@ -911,12 +929,12 @@ namespace HRManagement.Services.LeaveRequests
                     req.StartDate <= r.StartDate && req.EndDate >= r.EndDate
                 )
 
-                //(r.Status == LeaveRequestStatus.Pending || r.Status == LeaveRequestStatus.Approved) &&
-                //(
-                //    (req.StartDate >= r.StartDate && req.StartDate <= r.EndDate) ||
-                //    (req.EndDate >= r.StartDate && req.EndDate <= r.EndDate) ||
-                //    (req.StartDate <= r.StartDate && req.EndDate >= r.EndDate)
-                //)
+            //(r.Status == LeaveRequestStatus.Pending || r.Status == LeaveRequestStatus.Approved) &&
+            //(
+            //    (req.StartDate >= r.StartDate && req.StartDate <= r.EndDate) ||
+            //    (req.EndDate >= r.StartDate && req.EndDate <= r.EndDate) ||
+            //    (req.StartDate <= r.StartDate && req.EndDate >= r.EndDate)
+            //)
             );
 
             if (overlapExists)
@@ -924,7 +942,7 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            
+
 
             // Balance Validator
             var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForApprovalOfLeaveRequestAsync(dto, req);
@@ -973,13 +991,14 @@ namespace HRManagement.Services.LeaveRequests
             var employee = await _context.Employees.FindAsync(req.EmployeeId);
 
 
-            int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+            //int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+            int daysApproved = req.EndDate.DayNumber - req.StartDate.DayNumber + 1;
 
 
             string subject = "Leave Request Approved";
 
             string body = "";
-            if (req.StartDate.Date == req.EndDate.Date)
+            if (req.StartDate == req.EndDate)
             {
                 body =
                     $"Hi {employee.EmployeeName},\n\n" +
@@ -989,7 +1008,7 @@ namespace HRManagement.Services.LeaveRequests
                     "Thanks.";
             }
             else
-            { 
+            {
                 body =
                     $"Hi {employee.EmployeeName},\n\n" +
                     $"Your leave request from {req.StartDate:dd-MMM-yyyy} to {req.EndDate:dd-MMM-yyyy} has been approved for {daysApproved} days. Please ensure all necessary work is handed over or completed before your absence.\n\n" +
@@ -1001,7 +1020,7 @@ namespace HRManagement.Services.LeaveRequests
             _emailService.SendEmail(employee.WorkEmail, subject, body);
 
 
-            
+
 
             return new ApiResponse(true, "Leave approved and balance updated.", 200, req);
         }
@@ -1027,7 +1046,7 @@ namespace HRManagement.Services.LeaveRequests
             //string body = $"Hi {employee.FirstName},\n\nYour leave request has been rejected. \nReason: {req.ManagerRemarks} days.\n\nThanks.";
 
             string body = "";
-            if (req.StartDate.Date == req.EndDate.Date)
+            if (req.StartDate == req.EndDate)
             {
                 body =
                     $"Hi {employee.EmployeeName},\n\n" +
@@ -1081,12 +1100,13 @@ namespace HRManagement.Services.LeaveRequests
             var employee = await _context.Employees.FindAsync(req.EmployeeId);
 
 
-            int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+            //int daysApproved = (int)(req.EndDate - req.StartDate).TotalDays + 1;
+            int daysApproved = req.EndDate.DayNumber - req.StartDate.DayNumber + 1;
 
 
             string subject = "Leave Request Status Changed To Pending";
             string body = "";
-            if (req.StartDate.Date == req.EndDate.Date)
+            if (req.StartDate == req.EndDate)
             {
                 body =
                     $"Hi {employee.EmployeeName},\n\n" +
@@ -1119,9 +1139,17 @@ namespace HRManagement.Services.LeaveRequests
         // the lr which are approved and for this month
         public async Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync()
         {
+            //var now = DateTime.UtcNow;
+            //var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            //var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
             var now = DateTime.UtcNow;
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            DateOnly startOfMonth = DateOnly.FromDateTime(new DateTime(now.Year, now.Month, 1));
+            DateOnly endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+
+
+
 
             //Start of Month: 01 - 08 - 2025 00:00:00, End of Month: 31 - 08 - 2025 00:00:00
             Console.WriteLine($"\n\n\n\n\n\nStart of Month: {startOfMonth}, End of Month: {endOfMonth}");
@@ -1202,7 +1230,9 @@ namespace HRManagement.Services.LeaveRequests
                         .Where(fileName => !string.IsNullOrEmpty(fileName))
                         .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                         .ToList(),
-                    lr.LeaveDaysUsed
+                    lr.LeaveDaysUsed,
+                    lr.IsStartDateHalfDay,
+                    lr.IsEndDateHalfDay
                 });
             }
 
@@ -1221,7 +1251,9 @@ namespace HRManagement.Services.LeaveRequests
         // Showing the employees who are currently on leave today (i.e., today falls between their approved leave start and end dates).
         public async Task<ApiResponse> GetCurrentPlannedLeavesAsync()
         {
-            var today = DateTime.UtcNow.Date;
+            //var today = DateTime.UtcNow.Date;
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
             Console.WriteLine($"Today: {today}");
             var currentLeavesToday = await _context.LeaveRequests
                 .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
@@ -1269,7 +1301,9 @@ namespace HRManagement.Services.LeaveRequests
                         .Where(fileName => !string.IsNullOrEmpty(fileName))
                         .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
                         .ToList(),
-                    lr.LeaveDaysUsed
+                    lr.LeaveDaysUsed,
+                    lr.IsStartDateHalfDay,
+                    lr.IsEndDateHalfDay
                 });
             }
 
