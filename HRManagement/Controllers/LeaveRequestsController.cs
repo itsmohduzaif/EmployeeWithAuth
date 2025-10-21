@@ -22,7 +22,7 @@ namespace HRManagement.Controllers
 
         [Authorize]
         [HttpGet("employee")]
-        public async Task<IActionResult> GetLeaveRequestsForEmployee([FromBody] GetLeaveRequestsForEmployeeFilterDto filters)
+        public async Task<IActionResult> GetLeaveRequestsForEmployee([FromQuery] GetLeaveRequestsForEmployeeFilterDto filters)
         {
             //string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);   // Not using it for now (guid id)
             string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
