@@ -4,13 +4,16 @@ namespace HRManagement.Services.EmployeesExcel
 {
     public interface IEmployeeExcel
     {
-        //void ImportExcelData();
 
-        Task ExportEmployeesToExcel(string filePath);
-        Task ImportExcelData(List<EmployeeBasicDetails> employeeBasicDetailsList,
-            List<ContactAndAddressDetails> contactAndAddressDetailsList,
-            List<VisaAndLegalDocuments> visaAndLegalDocumentsList);
-        Task ReadEmployeesFromExcel(string filePath);
+        Task<MemoryStream> ExportEmployeesToExcel();
+
+            
+        // // Commented out endpoints for file path based import/export - as we dont have requirement for them.
+        //Task ExportEmployeesExcelToFilePath(string filePath);
+        //Task ImportExcelData(List<EmployeeBasicDetails> employeeBasicDetailsList,
+        //    List<ContactAndAddressDetails> contactAndAddressDetailsList,
+        //    List<VisaAndLegalDocuments> visaAndLegalDocumentsList);
+        //Task ReadEmployeesFromExcelFromPath(string filePath);
 
 
 

@@ -42,7 +42,7 @@ public class TestExceptionController : ControllerBase
 
         // Calling from scoped
 
-        await _employeeExcel.ExportEmployeesToExcel(@"C:\Users\user\Downloads\test7.xlsx");
+        //await _employeeExcel.ExportEmployeesToExcel(@"C:\Users\user\Downloads\test7.xlsx");
 
         //await _employeeExcel.ReadEmployeesFromExcel(@"C:\Users\user\Downloads\test7.xlsx");
 

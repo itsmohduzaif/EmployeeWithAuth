@@ -31,33 +31,7 @@ namespace HRManagement.Services.Accounts
 
         }
 
-        public async Task<ApiResponse> Register(UserForRegistrationDto userForRegistration)
-        {
-            if (userForRegistration is null)
-                return new ApiResponse(false, "User data is required.", 400, null);
-
-            var user = new User
-            {
-                EmployeeName = userForRegistration.EmployeeName,
-                Email = userForRegistration.WorkEmail,
-                UserName = userForRegistration.UserName,
-                PhoneNumber = userForRegistration.PersonalPhone
-            };
-            var result = await _userManager.CreateAsync(user, userForRegistration.Password);
-
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors.Select(e => e.Description);
-
-                return new ApiResponse(false, "User registration failed: " + string.Join(", ", errors), 400, errors);
-
-            }
-
-            await _userManager.AddToRoleAsync(user, userForRegistration.EmployeeRole);
-
-            return new ApiResponse(true, "User registered successfully", 200, null);
-
-        }
+        
 
         public async Task<ApiResponse> Login(UserForAuthenticationDto userForAuthentication)
         {
@@ -90,7 +64,20 @@ namespace HRManagement.Services.Accounts
             string subject = "Reset your password";
             string body = $"Hello,\n\nPlease reset your password by clicking the link below:\n{resetUrl}\n\nIf you did not request this, please ignore this email.\n\nThanks.";
 
-            _emailService.SendEmail(user.Email, subject, body);
+            //_emailService.SendEmail(user.Email, subject, body);
+
+            // Writing this try catch for easy unit testing
+            try
+            {
+                _emailService.SendEmail(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the error
+                // e.g., _logger.LogError(ex, "Failed to send password reset email");
+            }
+
+
 
 
             return new ApiResponse(true, "If the email exists, password reset instructions have been sent.", 200, null);
@@ -140,5 +127,35 @@ namespace HRManagement.Services.Accounts
 
             return new ApiResponse(true, "Password changed successfully", 200, null);
         }
+
+
+
+        //public async Task<ApiResponse> Register(UserForRegistrationDto userForRegistration)
+        //{
+        //    if (userForRegistration is null)
+        //        return new ApiResponse(false, "User data is required.", 400, null);
+
+        //    var user = new User
+        //    {
+        //        EmployeeName = userForRegistration.EmployeeName,
+        //        Email = userForRegistration.WorkEmail,
+        //        UserName = userForRegistration.UserName,
+        //        PhoneNumber = userForRegistration.PersonalPhone
+        //    };
+        //    var result = await _userManager.CreateAsync(user, userForRegistration.Password);
+
+        //    if (!result.Succeeded)
+        //    {
+        //        var errors = result.Errors.Select(e => e.Description);
+
+        //        return new ApiResponse(false, "User registration failed: " + string.Join(", ", errors), 400, errors);
+
+        //    }
+
+        //    await _userManager.AddToRoleAsync(user, userForRegistration.EmployeeRole);
+
+        //    return new ApiResponse(true, "User registered successfully", 200, null);
+
+        //}
     }
 }

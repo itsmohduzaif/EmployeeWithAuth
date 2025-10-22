@@ -1,6 +1,7 @@
 ﻿using HRManagement.DTOs;
 using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Services.Employees;
+using HRManagement.Services.EmployeesExcel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,10 +13,12 @@ namespace HRManagement.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly IEmployeeExcel _employeeExcel; 
 
-        public EmployeeController(IEmployeeService employeeService)
+        public EmployeeController(IEmployeeService employeeService, IEmployeeExcel employeeExcel)
         {
             _employeeService = employeeService;
+            _employeeExcel = employeeExcel;
         }
 
 
@@ -116,6 +119,43 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
+        // Endpoint to export employees to Excel
+        [Authorize(Roles = "Admin")]
+        [HttpGet("export-excel")]
+        public async Task<IActionResult> ExportEmployeesExcel()
+        {
+            var stream = await _employeeExcel.ExportEmployeesToExcel();
+
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            var fileName = $"Employees_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(stream, contentType, fileName);
+
+
+            //return Ok("Excel file exported successfully.");
+        }
+
+
+
+        // Commented out endpoints for file path based import/export - as we dont have requirement for them.
+
+        //// Endpoint to export employees to Excel
+        ////[Authorize(Roles = "Admin")]
+        //[HttpGet("export-excel-to-file-path")]
+        //public async Task<IActionResult> ExportEmployeesExcelToFilePath()
+        //{
+        //    await _employeeExcel.ExportEmployeesExcelToFilePath(@"C:\Users\user\Downloads\test7.xlsx");
+        //    return Ok("Excel file exported successfully.");
+        //}
+
+        //// Endpoint to import employees from Excel
+        ////[Authorize(Roles = "Admin")]
+        //[HttpPost("import-excel-from-file-path")]
+        //public async Task<IActionResult> ImportEmployeesExcel()
+        //{
+        //    await _employeeExcel.ReadEmployeesFromExcelFromPath(@"C:\Users\user\Downloads\test7.xlsx");
+        //    return Ok("Excel file imported successfully.");
+        //}
 
     }
 

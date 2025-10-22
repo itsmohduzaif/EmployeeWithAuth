@@ -20,15 +20,7 @@ namespace HRManagement.Controllers
         }
 
 
-        // This endpoint is for testing purposes only and should not be used in production.
-        // User Register (for testing only without auth)
-        // POST https://localhost:7150/api/Account/register
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserForRegistrationDto userForRegistration)
-        {
-            var Response = await _accountService.Register(userForRegistration);
-            return Ok(Response);
-        }
+        
 
         // POST https://localhost:7150/api/Account/login
         [HttpPost("login")]
@@ -64,6 +56,17 @@ namespace HRManagement.Controllers
             var Response = await _accountService.ResetPasswordAsync(dto);
             return StatusCode(Response.StatusCode, Response);
         }
+
+
+        //// This endpoint is for testing purposes only and should not be used in production.
+        //// User Register (for testing only without auth)
+        //// POST https://localhost:7150/api/Account/register
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] UserForRegistrationDto userForRegistration)
+        //{
+        //    var Response = await _accountService.Register(userForRegistration);
+        //    return Ok(Response);
+        //}
 
     }
 }
