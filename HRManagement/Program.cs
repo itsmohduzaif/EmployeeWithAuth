@@ -80,8 +80,8 @@ builder.Services.AddSingleton<BlobStorageService>();
 builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddHostedService<ExpiryNotificationService>();
-builder.Services.AddSingleton<EmployeeExcelExporter>();
-builder.Services.AddSingleton<EmployeeExcelImporter>();
+//builder.Services.AddSingleton<EmployeeExcelExporter>();
+//builder.Services.AddSingleton<EmployeeExcelImporter>();
 builder.Services.AddScoped<IEmployeeExcel, EmployeeExcel>();
 
 builder.Services.AddTransient<LeaveRequestHelper>();

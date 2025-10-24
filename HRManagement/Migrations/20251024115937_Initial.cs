@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class iniial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -359,7 +359,7 @@ namespace HRManagement.Migrations
             migrationBuilder.InsertData(
                 table: "Employees",
                 columns: new[] { "EmployeeId", "ContractBy", "ContractEndDate", "CountryOfResidence", "CreatedBy", "CreatedDate", "CurrentAddress", "DateOfBirth", "DateOfJoining", "Department", "EmergencyContactName", "EmergencyContactNumber", "EmergencyContactRelationship", "EmiratesIdExpiryDate", "EmiratesIdNumber", "EmployeeName", "EmployeeRole", "EmploymentType", "Gender", "InsuranceExpiryDate", "IsActive", "IsDraft", "JobTitle", "LabourCardExpiryDate", "ManagerName", "MaritalStatus", "ModifiedBy", "ModifiedDate", "Nationality", "PassportExpiryDate", "PassportNumber", "PermanentAddress", "PersonalEmail", "PersonalPhone", "PoBox", "ProfilePictureFileName", "Status", "UserName", "VisaExpiryDate", "WorkEmail", "WorkLocation", "WorkPhone" },
-                values: new object[] { 1, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "Admin", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "admin", null, "admin@gmail.com", "", "" });
+                values: new object[] { 1, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "John Doe", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "johndoe", null, "admin@datafirstservices.com", "", "" });
 
             migrationBuilder.InsertData(
                 table: "GeneralSettings",

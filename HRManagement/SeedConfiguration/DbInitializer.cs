@@ -42,9 +42,9 @@ namespace HRManagement.SeedConfiguration
             {
                 var adminUser = new User
                 {
-                    UserName = "admin",
-                    Email = "admin@gmail.com",
-                    EmployeeName = "Admin",
+                    UserName = "johndoe",
+                    Email = "admin@datafirstservices.com",
+                    EmployeeName = "John Doe",
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "Testing32!Password"); // Testing32!Password

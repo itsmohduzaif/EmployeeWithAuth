@@ -327,7 +327,7 @@ namespace HRManagement.Migrations
                             EmergencyContactNumber = "",
                             EmergencyContactRelationship = "",
                             EmiratesIdNumber = "",
-                            EmployeeName = "Admin",
+                            EmployeeName = "John Doe",
                             EmployeeRole = "Admin",
                             EmploymentType = "",
                             Gender = "",
@@ -345,8 +345,8 @@ namespace HRManagement.Migrations
                             PersonalPhone = "9876543210",
                             PoBox = "",
                             Status = "",
-                            UserName = "admin",
-                            WorkEmail = "admin@gmail.com",
+                            UserName = "johndoe",
+                            WorkEmail = "admin@datafirstservices.com",
                             WorkLocation = "",
                             WorkPhone = ""
                         });

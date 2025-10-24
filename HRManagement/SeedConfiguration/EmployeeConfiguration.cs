@@ -12,9 +12,9 @@ namespace HRManagement.SeedConfiguration
                 new Employee
                 {
                     EmployeeId = 1,
-                    EmployeeName = "Admin",
-                    UserName = "admin",
-                    WorkEmail = "admin@gmail.com",
+                    EmployeeName = "John Doe",
+                    UserName = "johndoe",
+                    WorkEmail = "admin@datafirstservices.com",
                     PersonalPhone = "9876543210",   
                     IsActive = true,
                     CreatedDate = new DateTime(2024, 7, 1),

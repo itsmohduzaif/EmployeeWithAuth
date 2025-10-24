@@ -11,17 +11,18 @@ using Microsoft.AspNetCore.Mvc;
 public class TestExceptionController : ControllerBase
 {
     private readonly ILogger<TestExceptionController> _logger;
-    private readonly EmployeeExcelExporter _employeeExcelExporter;
-    private readonly EmployeeExcelImporter _employeeExcelImporter;
+    //private readonly EmployeeExcelExporter _employeeExcelExporter;
+    //private readonly EmployeeExcelImporter _employeeExcelImporter;
     private readonly IEmployeeExcel _employeeExcel;
 
     //Microsoft Identity Client
 
-    public TestExceptionController(ILogger<TestExceptionController> logger, EmployeeExcelExporter employeeExcelExporter, EmployeeExcelImporter employeeExcelImporter, IEmployeeExcel employeeExcel)
+    //public TestExceptionController(ILogger<TestExceptionController> logger, EmployeeExcelExporter employeeExcelExporter, EmployeeExcelImporter employeeExcelImporter, IEmployeeExcel employeeExcel)
+    public TestExceptionController(ILogger<TestExceptionController> logger, IEmployeeExcel employeeExcel)
     {
         _logger = logger;
-        _employeeExcelExporter = employeeExcelExporter;
-        _employeeExcelImporter = employeeExcelImporter;
+        //_employeeExcelExporter = employeeExcelExporter;
+        //_employeeExcelImporter = employeeExcelImporter;
         _employeeExcel = employeeExcel;
 
     }

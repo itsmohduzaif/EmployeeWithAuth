@@ -81,11 +81,22 @@ namespace HRManagement.Services.LeaveRequests
 
 
             // Balance Validator
-            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceAsync(EmployeeId, dto);
+            //var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceAsync(EmployeeId, dto);
+            //if (!balanceCheckResponse.IsSuccess)
+            //{
+            //    return balanceCheckResponse;
+            //}
+
+            // Balance Validation with updated generic method!
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceCoreAsync(EmployeeId, dto.LeaveTypeId, dto.StartDate, 
+                                                                                dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay);
             if (!balanceCheckResponse.IsSuccess)
             {
                 return balanceCheckResponse;
             }
+
+
+
 
 
 
@@ -374,50 +385,23 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-
-
-
-
-            //// New logic that uses leaveDaysUsed field
-            //// Code to check leave balance
-            //var sumOfLeaveDaysUsed = await _context.LeaveRequests
-            //    .Where(lr => lr.EmployeeId == EmployeeId && lr.LeaveTypeId == dto.LeaveTypeId && lr.Status == LeaveRequestStatus.Approved
-            //    && lr.StartDate.Year == dto.StartDate.Year)
-            //    .SumAsync(lr => lr.LeaveDaysUsed);
-
-            //Console.WriteLine($"\n\n\n The sum of Leave Days Used for the Leave Type is: {sumOfLeaveDaysUsed}");
-
-            //// Get the default annual allocation for this leave type
-            //var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
-            //if (leaveType == null)
+            //// Balance Validator
+            //var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForUpdateLeaveRequestAsync(EmployeeId, dto);
+            //if (!balanceCheckResponse.IsSuccess)
             //{
-            //    return new ApiResponse(false, "Leave type not found.", 404, null);
+            //    return balanceCheckResponse;
             //}
 
-            //var defaultAnnualAllocation = leaveType.DefaultAnnualAllocation;
-
-            //if (sumOfLeaveDaysUsed >= defaultAnnualAllocation)
-            //{
-            //    return new ApiResponse(false, "Leave balance exceeded for this leave type.", 400, null);
-            //}
-
-            //// Calculate the number of days for the current leave request
-            ////int requestedLeaveDays = (dto.EndDate - dto.StartDate).Days + 1;
-            //var requestedLeaveDays = CalculateEffectiveLeaveDays.GetEffectiveLeaveDays(dto.StartDate, dto.EndDate);
-
-            //if (sumOfLeaveDaysUsed + requestedLeaveDays > defaultAnnualAllocation)
-            //{
-            //    return new ApiResponse(false, "Insufficient leave balance for this request.", 400, null);
-            //}
-
-
-
-            // Balance Validator
-            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForUpdateLeaveRequestAsync(EmployeeId, dto);
+            // Balance Validation with updated generic method!
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceCoreAsync(EmployeeId, dto.LeaveTypeId, dto.StartDate, 
+                                                                            dto.EndDate, dto.IsStartDateHalfDay, dto.IsEndDateHalfDay, requestId);
             if (!balanceCheckResponse.IsSuccess)
             {
                 return balanceCheckResponse;
             }
+
+
+
 
 
 
@@ -944,12 +928,21 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            // Balance Validator
-            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForApprovalOfLeaveRequestAsync(dto, req);
+            //// Balance Validator
+            //var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceForApprovalOfLeaveRequestAsync(dto, req);
+            //if (!balanceCheckResponse.IsSuccess)
+            //{
+            //    return balanceCheckResponse;
+            //}
+
+            // Balance Validator with new generic method!
+            var balanceCheckResponse = await _leaveRequestHelper.CheckLeaveBalanceCoreAsync(req.EmployeeId, req.LeaveTypeId, req.StartDate, 
+                                                                                        req.EndDate, req.IsStartDateHalfDay, req.IsEndDateHalfDay, req.LeaveRequestId);
             if (!balanceCheckResponse.IsSuccess)
             {
                 return balanceCheckResponse;
             }
+
 
 
 
@@ -1139,10 +1132,7 @@ namespace HRManagement.Services.LeaveRequests
         // the lr which are approved and for this month
         public async Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync()
         {
-            //var now = DateTime.UtcNow;
-            //var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            //var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-
+           
             var now = DateTime.UtcNow;
             DateOnly startOfMonth = DateOnly.FromDateTime(new DateTime(now.Year, now.Month, 1));
             DateOnly endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);

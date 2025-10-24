@@ -8,85 +8,76 @@ namespace HRManagement.Helpers
     {
 
         // For now only created a basic logic, will improve it later - once i get more clarity from Malar regarding the requirements
+        // Also commented this whole method as for now we are not asked for public holiday calculation in the requirements
         public static bool IsPublicHoliday(DateOnly date)
         {
             //var publicHolidays = new List<DateTime>();
 
-            if (date.Year == 2025)
-            {
-                var publicHolidays = new List<DateOnly>
-                {
-                    new DateOnly(2025, 1, 1),   // New Year's Day
-                    new DateOnly(2025, 1, 27),  // Israa & Mi’raj (predicted)
-                    new DateOnly(2025, 3, 30),  // Eid Al Fitr - Day 1 (predicted)
-                    new DateOnly(2025, 3, 31),  // Eid Al Fitr - Day 2
-                    new DateOnly(2025, 4, 1),   // Eid Al Fitr - Day 3
-                    new DateOnly(2025, 6, 5),   // Arafat Day (predicted)
-                    new DateOnly(2025, 6, 6),   // Eid Al Adha - Day 1
-                    new DateOnly(2025, 6, 7),   // Eid Al Adha - Day 2
-                    new DateOnly(2025, 6, 8),   // Eid Al Adha - Day 3
-                    new DateOnly(2025, 6, 27),  // Hijri New Year (predicted)
-                    new DateOnly(2025, 9, 5),   // Prophet Muhammad’s Birthday (predicted)
-                    new DateOnly(2025, 12, 1),  // Commemoration Day
-                    new DateOnly(2025, 12, 2),  // UAE National Day
-                    new DateOnly(2025, 12, 3),  // UAE National Day Holiday
-                };
+            //if (date.Year == 2025)
+            //{
+            //    var publicHolidays = new List<DateOnly>
+            //    {
+            //        new DateOnly(2025, 1, 1),   // New Year's Day
+            //        new DateOnly(2025, 1, 27),  // Israa & Mi’raj (predicted)
+            //        new DateOnly(2025, 3, 30),  // Eid Al Fitr - Day 1 (predicted)
+            //        new DateOnly(2025, 3, 31),  // Eid Al Fitr - Day 2
+            //        new DateOnly(2025, 4, 1),   // Eid Al Fitr - Day 3
+            //        new DateOnly(2025, 6, 5),   // Arafat Day (predicted)
+            //        new DateOnly(2025, 6, 6),   // Eid Al Adha - Day 1
+            //        new DateOnly(2025, 6, 7),   // Eid Al Adha - Day 2
+            //        new DateOnly(2025, 6, 8),   // Eid Al Adha - Day 3
+            //        new DateOnly(2025, 6, 27),  // Hijri New Year (predicted)
+            //        new DateOnly(2025, 9, 5),   // Prophet Muhammad’s Birthday (predicted)
+            //        new DateOnly(2025, 12, 1),  // Commemoration Day
+            //        new DateOnly(2025, 12, 2),  // UAE National Day
+            //        new DateOnly(2025, 12, 3),  // UAE National Day Holiday
+            //    };
 
-                return publicHolidays.Contains(date);
-            }
-            else if (date.Year == 2026)
-            {
-                var publicHolidays = new List<DateOnly>
-                {
-                    new DateOnly(2026, 1, 1),   // New Year's Day
-                    new DateOnly(2026, 3, 20),  // Eid Al Fitr - Day 1 (predicted)
-                    new DateOnly(2026, 3, 21),  // Eid Al Fitr - Day 2
-                    //new DateTime(2026, 3, 22),  // Eid Al Fitr - Day 3
-                    //new DateTime(2026, 5, 26),  // Arafat Day (predicted)
-                    //new DateTime(2026, 5, 27),  // Eid Al Adha - Day 1
-                    //new DateTime(2026, 5, 28),  // Eid Al Adha - Day 2
-                    //new DateTime(2026, 5, 29),  // Eid Al Adha - Day 3
-                    //new DateTime(2026, 6, 17),  // Hijri New Year (predicted)
-                    //new DateTime(2026, 8, 25),  // Prophet Muhammad’s Birthday (predicted)
-                    //new DateTime(2026, 12, 1),  // Commemoration Day
-                    //new DateTime(2026, 12, 2),  // UAE National Day
-                    //new DateTime(2026, 12, 3),  // UAE National Day Holiday
-                };
+            //    return publicHolidays.Contains(date);
+            //}
+            //else if (date.Year == 2026)
+            //{
+            //    var publicHolidays = new List<DateOnly>
+            //    {
+            //        new DateOnly(2026, 1, 1),   // New Year's Day
+            //        new DateOnly(2026, 3, 20),  // Eid Al Fitr - Day 1 (predicted)
+            //        new DateOnly(2026, 3, 21),  // Eid Al Fitr - Day 2
+            //        new DateOnly(2026, 3, 22),  // Eid Al Fitr - Day 3
+            //        new DateOnly(2026, 5, 26),  // Arafat Day (predicted)
+            //        new DateOnly(2026, 5, 27),  // Eid Al Adha - Day 1
+            //        new DateOnly(2026, 5, 28),  // Eid Al Adha - Day 2
+            //        new DateOnly(2026, 5, 29),  // Eid Al Adha - Day 3
+            //        new DateOnly(2026, 6, 17),  // Hijri New Year (predicted)
+            //        new DateOnly(2026, 8, 25),  // Prophet Muhammad’s Birthday (predicted)
+            //        new DateOnly(2026, 12, 1),  // Commemoration Day
+            //        new DateOnly(2026, 12, 2),  // UAE National Day
+            //        new DateOnly(2026, 12, 3),  // UAE National Day Holiday
+            //    };
 
-                return publicHolidays.Contains(date);
-            }
+            //    return publicHolidays.Contains(date);
+            //}
 
             return false; // Default to false if year is not handled
         }
 
 
-        public static bool CheckIfStartDateIsHalfDay(DateTime dateTime)
-        {
-            // Assuming half-day is considered if the time is after 1 PM (13:00)
-            //TimeSpan time = dateTime.TimeOfDay;
 
-            return dateTime.TimeOfDay >= TimeSpan.FromHours(13);
-        }
+        // Changed the design so dont need the below two methods
 
-        public static bool CheckIfEndDateIsHalfDay(DateTime dateTime)
-        {
-            // Assuming half-day is considered if the time is before 1 PM (13:00)
-            return dateTime.TimeOfDay <= TimeSpan.FromHours(13);
-        }
-
-        //public static bool IsPublicHolday(DateTime dateTime)
+        //public static bool CheckIfStartDateIsHalfDay(DateTime dateTime)
         //{
-        //    var publicHolidays = new List<DateTime>
-        //    {
-        //        new DateTime(dateTime.Year, 1, 1),   // New Year's Day
-        //        new DateTime(dateTime.Year, 12, 25), // Christmas Day
-        //        // Add more public holidays as needed
-        //    }; // Currently 
+        //    // Assuming half-day is considered if the time is after 1 PM (13:00)
+        //    //TimeSpan time = dateTime.TimeOfDay;
 
-        //    if (publicHolidays.Contains(dateTime.Date)) return true;
-
-        //    return false;
+        //    return dateTime.TimeOfDay >= TimeSpan.FromHours(13);
         //}
+
+        //public static bool CheckIfEndDateIsHalfDay(DateTime dateTime)
+        //{
+        //    // Assuming half-day is considered if the time is before 1 PM (13:00)
+        //    return dateTime.TimeOfDay <= TimeSpan.FromHours(13);
+        //}
+
 
         public static decimal GetEffectiveLeaveDays(DateOnly startDate, DateOnly endDate, bool isStartHalfDay, bool isEndHalfDay)
         {

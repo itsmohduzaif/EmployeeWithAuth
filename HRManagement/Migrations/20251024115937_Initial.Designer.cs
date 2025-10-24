@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251013064823_iniial")]
-    partial class iniial
+    [Migration("20251024115937_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -330,7 +330,7 @@ namespace HRManagement.Migrations
                             EmergencyContactNumber = "",
                             EmergencyContactRelationship = "",
                             EmiratesIdNumber = "",
-                            EmployeeName = "Admin",
+                            EmployeeName = "John Doe",
                             EmployeeRole = "Admin",
                             EmploymentType = "",
                             Gender = "",
@@ -348,8 +348,8 @@ namespace HRManagement.Migrations
                             PersonalPhone = "9876543210",
                             PoBox = "",
                             Status = "",
-                            UserName = "admin",
-                            WorkEmail = "admin@gmail.com",
+                            UserName = "johndoe",
+                            WorkEmail = "admin@datafirstservices.com",
                             WorkLocation = "",
                             WorkPhone = ""
                         });
