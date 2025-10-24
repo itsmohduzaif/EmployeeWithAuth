@@ -1,4 +1,7 @@
-﻿using HRManagement.Data;
+﻿// Not any requirement till now for these endpoints.
+
+
+using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.DTOs.Settings;
 using HRManagement.Models.Settings;

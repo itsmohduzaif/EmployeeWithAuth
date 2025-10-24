@@ -17,7 +17,6 @@ namespace HRManagement.Services.LeaveTypes
             _context = context;
         }
 
-        //Task<ApiResponse> GetAllLeaveTypesAsync();
         public async Task<ApiResponse> GetAllLeaveTypesAsync()
         {
             var leaveTypes = await _context.LeaveTypes.ToListAsync();

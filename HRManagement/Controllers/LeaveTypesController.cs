@@ -2,6 +2,7 @@
 using HRManagement.DTOs.Leaves;
 using HRManagement.Services;
 using HRManagement.Services.LeaveTypes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,6 +33,7 @@ namespace HRManagement.Controllers
             return Ok(Response);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateLeaveTypeAsync(CreateLeaveTypeDto dto)
         {
@@ -39,6 +41,7 @@ namespace HRManagement.Controllers
             return Ok(Response);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> UpdateLeaveTypeAsync(LeaveTypeDto dto)
         {
