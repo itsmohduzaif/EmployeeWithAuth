@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HRManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -341,6 +341,7 @@ namespace HRManagement.Migrations
                 values: new object[,]
                 {
                     { "45deb9d6-c1ae-44a6-a03b-c9a5cfc15f2f", null, "The admin role for the user", "Admin", "ADMIN" },
+                    { "4c3334b4-f7b3-2a0a-4b25-d72e22e333be", null, "The Super Admin role for the user", "Super Admin", "SUPER ADMIN" },
                     { "639de03f-7876-4fff-96ec-37f8bd3bf180", null, "The Employee role for the user", "Employee", "EMPLOYEE" },
                     { "8c7768a9-f7b3-4a0a-8b45-d74e44e367af", null, "The Manager role for the user", "Manager", "MANAGER" },
                     { "e1a1247c-7d96-4ac5-a2e4-7d5fe5fae6e7", null, "The HR role for the user", "Hr", "HR" }
@@ -359,7 +360,13 @@ namespace HRManagement.Migrations
             migrationBuilder.InsertData(
                 table: "Employees",
                 columns: new[] { "EmployeeId", "ContractBy", "ContractEndDate", "CountryOfResidence", "CreatedBy", "CreatedDate", "CurrentAddress", "DateOfBirth", "DateOfJoining", "Department", "EmergencyContactName", "EmergencyContactNumber", "EmergencyContactRelationship", "EmiratesIdExpiryDate", "EmiratesIdNumber", "EmployeeName", "EmployeeRole", "EmploymentType", "Gender", "InsuranceExpiryDate", "IsActive", "IsDraft", "JobTitle", "LabourCardExpiryDate", "ManagerName", "MaritalStatus", "ModifiedBy", "ModifiedDate", "Nationality", "PassportExpiryDate", "PassportNumber", "PermanentAddress", "PersonalEmail", "PersonalPhone", "PoBox", "ProfilePictureFileName", "Status", "UserName", "VisaExpiryDate", "WorkEmail", "WorkLocation", "WorkPhone" },
-                values: new object[] { 1, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "John Doe", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "johndoe", null, "admin@datafirstservices.com", "", "" });
+                values: new object[,]
+                {
+                    { 1, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "John Doe", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "johndoe", null, "admin1@datafirstservices.com", "", "" },
+                    { 2, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "Jane Roe", "Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "janeroe", null, "admin2@datafirstservices.com", "", "" },
+                    { 3, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "John Smith", "Super Admin", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "johnsmith", null, "superadmin@datafirstservices.com", "", "" },
+                    { 4, "", null, "", "System", new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, null, "", "", "", "", null, "", "Ankur Gaud", "Employee", "", "", null, true, false, "", null, "", "", "System", new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "", null, "", "", "", "9876543210", "", null, "", "ankurgaud", null, "ankurgaud@datafirstservices.com", "", "" }
+                });
 
             migrationBuilder.InsertData(
                 table: "GeneralSettings",

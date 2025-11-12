@@ -31,6 +31,8 @@ namespace HRManagement.Services.Notifications
 
                 // Run once every 24 hours
                 await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
+
+                //await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
 
@@ -38,7 +40,7 @@ namespace HRManagement.Services.Notifications
         {
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
             var adminEmail = scope.ServiceProvider.GetRequiredService<IConfiguration>()["Notifications:AdminEmail"];
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);

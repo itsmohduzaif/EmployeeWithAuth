@@ -6,7 +6,7 @@ using System.Net.Mail;
 namespace HRManagement.Services.Emails
 {
     //public class EmailService : IEmailService
-    public class EmailService
+    public class EmailService : IEmailService
     {
         private readonly SmtpSettings _smtpSettings;
 

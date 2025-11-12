@@ -26,6 +26,13 @@ namespace HRManagement.SeedConfiguration
                 },
                 new Role
                 {
+                    Id = "4c3334b4-f7b3-2a0a-4b25-d72e22e333be",
+                    Name = "Super Admin",
+                    NormalizedName = "SUPER ADMIN",
+                    Description = "The Super Admin role for the user"
+                },
+                new Role
+                {
                     Id = "8c7768a9-f7b3-4a0a-8b45-d74e44e367af",
                     Name = "Manager",
                     NormalizedName = "MANAGER",

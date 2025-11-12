@@ -72,15 +72,18 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-        [Authorize]
-        [HttpGet("upcoming-leaves")]
-        public async Task<IActionResult> GetUpcomingLeaves()
-        {
-            string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
 
-            var result = await _leaveRequestService.GetUpcomingLeavesForEmployeeAsync(usernameFromClaim);
-            return StatusCode(result.StatusCode, result);
-        }
+
+        //// NOT BEING USED BY FRONTEND YET
+        //[Authorize]
+        //[HttpGet("upcoming-leaves")]
+        //public async Task<IActionResult> GetUpcomingLeaves()
+        //{
+        //    string usernameFromClaim = User.FindFirstValue(ClaimTypes.Name);
+
+        //    var result = await _leaveRequestService.GetUpcomingLeavesForEmployeeAsync(usernameFromClaim);
+        //    return StatusCode(result.StatusCode, result);
+        //}
 
 
 
@@ -104,13 +107,14 @@ namespace HRManagement.Controllers
         //}
 
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("pending-approvals-count")]
-        public async Task<IActionResult> GetPendingApprovalCount()
-        {
-            var result = await _leaveRequestService.GetPendingLeaveApprovalCountAsync();
-            return StatusCode(result.StatusCode, result);
-        }
+        //// NOT BEING USED BY FRONTEND YET
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("pending-approvals-count")]
+        //public async Task<IActionResult> GetPendingApprovalCount()
+        //{
+        //    var result = await _leaveRequestService.GetPendingLeaveApprovalCountAsync();
+        //    return StatusCode(result.StatusCode, result);
+        //}
 
 
         [Authorize(Roles = "Admin")]
@@ -137,22 +141,24 @@ namespace HRManagement.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
+        //// NOT BEING USED BY FRONTEND YET
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("employees-on-leave-this-month")]
+        //public async Task<IActionResult> GetEmployeesOnLeaveThisMonth()
+        //{
+        //    var result = await _leaveRequestService.GetEmployeesOnLeaveThisMonthAsync();
+        //    return StatusCode(result.StatusCode, result);
+        //}
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("employees-on-leave-this-month")]
-        public async Task<IActionResult> GetEmployeesOnLeaveThisMonth()
-        {
-            var result = await _leaveRequestService.GetEmployeesOnLeaveThisMonthAsync();
-            return StatusCode(result.StatusCode, result);
-        }
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("current-planned-leaves")]
-        public async Task<IActionResult> GetCurrentPlannedLeaves()
-        {
-            var result = await _leaveRequestService.GetCurrentPlannedLeavesAsync();
-            return StatusCode(result.StatusCode, result);
-        }
+        //// NOT BEING USED BY FRONTEND YET
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("current-planned-leaves")]
+        //public async Task<IActionResult> GetCurrentPlannedLeaves()
+        //{
+        //    var result = await _leaveRequestService.GetCurrentPlannedLeavesAsync();
+        //    return StatusCode(result.StatusCode, result);
+        //}
 
 
     }

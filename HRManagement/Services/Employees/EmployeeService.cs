@@ -1,10 +1,11 @@
-﻿using AutoMapper;
+﻿    using AutoMapper;
 using HRManagement.Data;
 using HRManagement.DTOs;
 using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
+using HRManagement.Services.BlobStorage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -19,12 +20,12 @@ namespace HRManagement.Services.Employees
 
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
-        private readonly JwtHandler _jwtHandler;
-        private readonly BlobStorageService _blobStorageService;
+        private readonly IJwtHandler _jwtHandler;
+        private readonly IBlobStorageService _blobStorageService;
         private readonly string _containerNameForProfilePictures;
         private readonly IMapper _mapper;
 
-        public EmployeeService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService, IConfiguration configuration, IMapper mapper)
+        public EmployeeService(AppDbContext context, UserManager<User> userManager, IJwtHandler jwtHandler, IBlobStorageService blobStorageService, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;
@@ -84,7 +85,7 @@ namespace HRManagement.Services.Employees
                 "@datafirstservices.com",   
                 "@sdd.shj.ae",
                 "@gmail.com"
-            };
+            };  
 
             var email = employeeDto.WorkEmail?.ToLower();
 
@@ -110,6 +111,8 @@ namespace HRManagement.Services.Employees
 
             var result = await _userManager.CreateAsync(user, employeeDto.Password);
 
+            //IdentityResult result = await _userManager.CreateAsync(user, employeeDto.Password);
+
             if (!result.Succeeded)
             {
                 var errors = result.Errors.Select(e => e.Description);
@@ -118,7 +121,13 @@ namespace HRManagement.Services.Employees
 
             }
 
-            await _userManager.AddToRoleAsync(user, "Employee");
+            result = await _userManager.AddToRoleAsync(user, "Employee");
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return new ApiResponse(false, "Assigning role failed: " + string.Join(", ", errors), 400, errors);
+            }
 
             //var employee = new Employee
             //{
@@ -426,6 +435,33 @@ namespace HRManagement.Services.Employees
             if (user == null)
                 return new ApiResponse(false, "User not found", 404, null);
 
+
+            // Validate work email domain
+            var allowedDomains = new List<string>
+            {
+                "@jumeirah.com",
+                "@dubaiholding.com",
+                "@datafirstservices.com",
+                "@sdd.shj.ae",
+                "@gmail.com"
+            };
+
+            var email = profileUpdateDto.WorkEmail?.ToLower();
+
+            if (string.IsNullOrWhiteSpace(email) || !allowedDomains.Any(domain => email.EndsWith(domain)))
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Invalid work email domain. Allowed domains are: " + string.Join(", ", allowedDomains),
+                    StatusCode = 400
+                };
+            }
+
+
+
+
+
             // Find related employee record by email or username
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
             if (employee == null)
@@ -535,7 +571,7 @@ namespace HRManagement.Services.Employees
                 return new ApiResponse(false, "User not found", 404, null);
 
             var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.UserName == username || e.WorkEmail == user.Email);
+                .FirstOrDefaultAsync(e => e.UserName == username || e.WorkEmail == user.Email); 
 
             if (employee == null)
                 return new ApiResponse(false, "Employee profile not found", 404, null);

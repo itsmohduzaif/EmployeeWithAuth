@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251024115937_Initial")]
-    partial class Initial
+    [Migration("20251103081809_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,6 +68,13 @@ namespace HRManagement.Migrations
                             Description = "The admin role for the user",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "4c3334b4-f7b3-2a0a-4b25-d72e22e333be",
+                            Description = "The Super Admin role for the user",
+                            Name = "Super Admin",
+                            NormalizedName = "SUPER ADMIN"
                         },
                         new
                         {
@@ -349,7 +356,115 @@ namespace HRManagement.Migrations
                             PoBox = "",
                             Status = "",
                             UserName = "johndoe",
-                            WorkEmail = "admin@datafirstservices.com",
+                            WorkEmail = "admin1@datafirstservices.com",
+                            WorkLocation = "",
+                            WorkPhone = ""
+                        },
+                        new
+                        {
+                            EmployeeId = 2,
+                            ContractBy = "",
+                            CountryOfResidence = "",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CurrentAddress = "",
+                            Department = "",
+                            EmergencyContactName = "",
+                            EmergencyContactNumber = "",
+                            EmergencyContactRelationship = "",
+                            EmiratesIdNumber = "",
+                            EmployeeName = "Jane Roe",
+                            EmployeeRole = "Admin",
+                            EmploymentType = "",
+                            Gender = "",
+                            IsActive = true,
+                            IsDraft = false,
+                            JobTitle = "",
+                            ManagerName = "",
+                            MaritalStatus = "",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Nationality = "",
+                            PassportNumber = "",
+                            PermanentAddress = "",
+                            PersonalEmail = "",
+                            PersonalPhone = "9876543210",
+                            PoBox = "",
+                            Status = "",
+                            UserName = "janeroe",
+                            WorkEmail = "admin2@datafirstservices.com",
+                            WorkLocation = "",
+                            WorkPhone = ""
+                        },
+                        new
+                        {
+                            EmployeeId = 3,
+                            ContractBy = "",
+                            CountryOfResidence = "",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CurrentAddress = "",
+                            Department = "",
+                            EmergencyContactName = "",
+                            EmergencyContactNumber = "",
+                            EmergencyContactRelationship = "",
+                            EmiratesIdNumber = "",
+                            EmployeeName = "John Smith",
+                            EmployeeRole = "Super Admin",
+                            EmploymentType = "",
+                            Gender = "",
+                            IsActive = true,
+                            IsDraft = false,
+                            JobTitle = "",
+                            ManagerName = "",
+                            MaritalStatus = "",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Nationality = "",
+                            PassportNumber = "",
+                            PermanentAddress = "",
+                            PersonalEmail = "",
+                            PersonalPhone = "9876543210",
+                            PoBox = "",
+                            Status = "",
+                            UserName = "johnsmith",
+                            WorkEmail = "superadmin@datafirstservices.com",
+                            WorkLocation = "",
+                            WorkPhone = ""
+                        },
+                        new
+                        {
+                            EmployeeId = 4,
+                            ContractBy = "",
+                            CountryOfResidence = "",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CurrentAddress = "",
+                            Department = "",
+                            EmergencyContactName = "",
+                            EmergencyContactNumber = "",
+                            EmergencyContactRelationship = "",
+                            EmiratesIdNumber = "",
+                            EmployeeName = "Ankur Gaud",
+                            EmployeeRole = "Employee",
+                            EmploymentType = "",
+                            Gender = "",
+                            IsActive = true,
+                            IsDraft = false,
+                            JobTitle = "",
+                            ManagerName = "",
+                            MaritalStatus = "",
+                            ModifiedBy = "System",
+                            ModifiedDate = new DateTime(2024, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Nationality = "",
+                            PassportNumber = "",
+                            PermanentAddress = "",
+                            PersonalEmail = "",
+                            PersonalPhone = "9876543210",
+                            PoBox = "",
+                            Status = "",
+                            UserName = "ankurgaud",
+                            WorkEmail = "ankurgaud@datafirstservices.com",
                             WorkLocation = "",
                             WorkPhone = ""
                         });

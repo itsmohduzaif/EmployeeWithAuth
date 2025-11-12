@@ -40,44 +40,64 @@ namespace HRManagement.SeedConfiguration
         {
             if (!userManager.Users.Any())
             {
-                var adminUser = new User
+                var adminUser1 = new User
                 {
                     UserName = "johndoe",
-                    Email = "admin@datafirstservices.com",
+                    Email = "admin1@datafirstservices.com",
                     EmployeeName = "John Doe",
                 };
 
-                var result = await userManager.CreateAsync(adminUser, "Testing32!Password"); // Testing32!Password
+                var result = await userManager.CreateAsync(adminUser1, "Testing32!Password"); // Testing32!Password
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    await userManager.AddToRoleAsync(adminUser1, "Admin");
                 }
 
-                //var managerUser = new User
-                //{
-                //    UserName = "manager@company.com",
-                //    Email = "manager@company.com",
-                //    EmployeeName = "Manager"
-                //};
+                // Admin User 2
+                var adminUser2 = new User
+                {
+                    UserName = "janeroe",
+                    Email = "admin2@datafirstservices.com",
+                    EmployeeName = "Jane Roe",
+                };
 
-                //result = await userManager.CreateAsync(managerUser, "Manager123!");
-                //if (result.Succeeded)
-                //{
-                //    await userManager.AddToRoleAsync(managerUser, "Manager");
-                //}
+                result = await userManager.CreateAsync(adminUser2, "Testing32!Password"); // Testing32!Password
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser2, "Admin");
+                }
 
-                //var employeeUser = new User
-                //{
-                //    UserName = "employee@company.com",
-                //    Email = "employee@company.com",
-                //    EmployeeName = "Employee"
-                //};
 
-                //result = await userManager.CreateAsync(employeeUser, "Employee123!");
-                //if (result.Succeeded)
-                //{
-                //    await userManager.AddToRoleAsync(employeeUser, "Employee");
-                //}
+
+                // Super Admin User
+                var superAdminUser = new User
+                {
+                    UserName = "johnsmith",
+                    Email = "superadmin@datafirstservices.com",
+                    EmployeeName = "John Smith",
+                };
+
+                result = await userManager.CreateAsync(superAdminUser, "Testing32!Password"); // Testing32!Password
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(superAdminUser, "Super Admin");
+                }
+
+
+                // Normal Employee Users
+                var employeeUser1 = new User
+                {
+                    UserName = "ankurgaud",
+                    Email = "ankurgaud@datafirstservices.com",
+                    EmployeeName = "Ankur Gaud",
+                };
+
+                result = await userManager.CreateAsync(employeeUser1, "Testing32!Password"); // Testing32!Password
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(employeeUser1, "Employee");
+                }
+
             }
         }
     }

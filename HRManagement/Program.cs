@@ -8,6 +8,7 @@ using HRManagement.JwtFeatures;
 using HRManagement.Models;
 using HRManagement.SeedConfiguration;
 using HRManagement.Services.Accounts;
+using HRManagement.Services.BlobStorage;
 using HRManagement.Services.Drafts;
 using HRManagement.Services.Emails;
 using HRManagement.Services.Employees;
@@ -75,16 +76,21 @@ builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 builder.Services.AddScoped<IDraftService, DraftService>();
 
-builder.Services.AddSingleton<JwtHandler>();
-builder.Services.AddSingleton<BlobStorageService>();
-builder.Services.AddSingleton<EmailService>();
+//builder.Services.AddSingleton<JwtHandler>();
+builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
+
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+//builder.Services.AddSingleton<EmailService>();
+
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 builder.Services.AddHostedService<ExpiryNotificationService>();
 //builder.Services.AddSingleton<EmployeeExcelExporter>();
 //builder.Services.AddSingleton<EmployeeExcelImporter>();
 builder.Services.AddScoped<IEmployeeExcel, EmployeeExcel>();
 
-builder.Services.AddTransient<LeaveRequestHelper>();
+//builder.Services.AddTransient<LeaveRequestHelper>();
+builder.Services.AddTransient<ILeaveRequestHelper, LeaveRequestHelper>();
 
 
 
@@ -190,35 +196,6 @@ using (var scope = app.Services.CreateScope())
 
 // For exception handling 
 app.UseExceptionHandler();
-
-// Handle 415 Unsupported Media Type with custom response - as when no dto is being sent in the request body it gives an error with format other than ApiResponse
-// Will implement it later
-//app.Use(async (context, next) =>
-//{
-//    // Only intercept for POST/PUT/PATCH with a body
-//    if (HttpMethods.IsPost(context.Request.Method) ||
-//        HttpMethods.IsPut(context.Request.Method) ||
-//        HttpMethods.IsPatch(context.Request.Method) ||
-//        HttpMethods.IsGet(context.Request.Method))
-//    {
-//        var contentType = context.Request.ContentType;
-
-//        // If Content-Type is missing or not application/json
-//        if (string.IsNullOrEmpty(contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
-//        {
-//            context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
-//            context.Response.ContentType = "application/json";
-
-//            var response = new ApiResponse(false, "Unsupported Media Type. Please set Content-Type to application/json.", 415, null);
-//            await context.Response.WriteAsJsonAsync(response);
-//            return; // short-circuit
-//        }
-//    }
-
-//    await next(); // continue to next middleware if content type is OK
-//});
-
-
 
 
 // Enable CORS for frontend

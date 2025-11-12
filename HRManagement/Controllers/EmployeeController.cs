@@ -24,7 +24,7 @@ namespace HRManagement.Controllers
 
 
         // Get https://localhost:7150/api/employee/
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Super Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllEmployees()
         {
@@ -120,7 +120,7 @@ namespace HRManagement.Controllers
         }
 
         // Endpoint to export employees to Excel
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Super Admin")]
         [HttpGet("export-excel")]
         public async Task<IActionResult> ExportEmployeesExcel()
         {

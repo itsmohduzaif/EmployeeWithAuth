@@ -1,8 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
+using HRManagement.Services.BlobStorage;
 
-public class BlobStorageService
+public class BlobStorageService : IBlobStorageService
 {
     private readonly string _connectionString;
     //private readonly string _containerName;

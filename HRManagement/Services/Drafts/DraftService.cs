@@ -6,6 +6,7 @@ using HRManagement.DTOs.EmployeeDTOs;
 using HRManagement.Entities;
 using HRManagement.JwtFeatures;
 using HRManagement.Models;
+using HRManagement.Services.BlobStorage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -16,13 +17,13 @@ namespace HRManagement.Services.Drafts
     {
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
-        private readonly JwtHandler _jwtHandler;
-        private readonly BlobStorageService _blobStorageService;
+        private readonly IJwtHandler _jwtHandler;
+        private readonly IBlobStorageService _blobStorageService;
         private readonly string _containerNameForProfilePictures;
         private readonly IMapper _mapper;
         
 
-        public DraftService(AppDbContext context, UserManager<User> userManager, JwtHandler jwtHandler, BlobStorageService blobStorageService, IConfiguration configuration, IMapper mapper)
+        public DraftService(AppDbContext context, UserManager<User> userManager, IJwtHandler jwtHandler, IBlobStorageService blobStorageService, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;

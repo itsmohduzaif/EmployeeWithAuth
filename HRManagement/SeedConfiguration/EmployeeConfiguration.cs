@@ -14,7 +14,7 @@ namespace HRManagement.SeedConfiguration
                     EmployeeId = 1,
                     EmployeeName = "John Doe",
                     UserName = "johndoe",
-                    WorkEmail = "admin@datafirstservices.com",
+                    WorkEmail = "admin1@datafirstservices.com",
                     PersonalPhone = "9876543210",   
                     IsActive = true,
                     CreatedDate = new DateTime(2024, 7, 1),
@@ -22,52 +22,49 @@ namespace HRManagement.SeedConfiguration
                     CreatedBy = "System",
                     ModifiedBy = "System",
                     EmployeeRole = "Admin"
+                },
+                new Employee
+                {
+                    EmployeeId = 2,
+                    EmployeeName = "Jane Roe",
+                    UserName = "janeroe",
+                    WorkEmail = "admin2@datafirstservices.com",
+                    PersonalPhone = "9876543210",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 7, 1),
+                    ModifiedDate = new DateTime(2024, 7, 15),
+                    CreatedBy = "System",
+                    ModifiedBy = "System",
+                    EmployeeRole = "Admin"
+                },
+                new Employee
+                {
+                    EmployeeId = 3,
+                    EmployeeName = "John Smith",
+                    UserName = "johnsmith",
+                    WorkEmail = "superadmin@datafirstservices.com",
+                    PersonalPhone   = "9876543210",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 7, 1),
+                    ModifiedDate = new DateTime(2024, 7, 15),
+                    CreatedBy = "System",
+                    ModifiedBy = "System",
+                    EmployeeRole = "Super Admin"
+                },
+                new Employee
+                {
+                    EmployeeId = 4,
+                    EmployeeName = "Ankur Gaud",
+                    UserName = "ankurgaud",
+                    WorkEmail = "ankurgaud@datafirstservices.com",
+                    PersonalPhone = "9876543210",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 7, 1),
+                    ModifiedDate = new DateTime(2024, 7, 15),
+                    CreatedBy = "System",
+                    ModifiedBy = "System",
+                    EmployeeRole = "Employee"
                 }
-                //new Employee
-                //{
-                //    EmployeeId = 2,
-                //    FirstName = "Nisha",
-                //    LastName = "Verma",
-                //    Username = "nisha.verma",
-                //    Email = "nisha.verma@datafirst.com",
-                //    Phone = "9898989898",
-                //    IsActive = true,
-                //    CreatedDate = new DateTime(2024, 6, 18),
-                //    ModifiedDate = new DateTime(2024, 6, 25),
-                //    CreatedBy = "System",
-                //    ModifiedBy = "System",
-                //    EmployeeRole = "QA Analyst"
-                //},
-                //new Employee
-                //{
-                //    EmployeeId = 3,
-                //    FirstName = "Rahul",
-                //    LastName = "Kumar",
-                //    Username = "rahul.kumar",
-                //    Email = "rahul.kumar@datafirst.com",
-                //    Phone = "9123456789",
-                //    IsActive = false,
-                //    CreatedDate = new DateTime(2024, 5, 10),
-                //    ModifiedDate = new DateTime(2024, 5, 20),
-                //    CreatedBy = "System",
-                //    ModifiedBy = "System",
-                //    EmployeeRole = "HR Executive"
-                //},
-                //new Employee
-                //{
-                //    EmployeeId = 4,
-                //    FirstName = "Pooja",
-                //    LastName = "Mehta",
-                //    Username = "pooja.mehta",
-                //    Email = "pooja.mehta@datafirst.com",
-                //    Phone = "9911223344",
-                //    IsActive = true,
-                //    CreatedDate = new DateTime(2024, 7, 5),
-                //    ModifiedDate = new DateTime(2024, 7, 10),
-                //    CreatedBy = "System",
-                //    ModifiedBy = "System",
-                //    EmployeeRole = "Project Manager"
-                //},
                 //new Employee
                 //{
                 //    EmployeeId = 5,

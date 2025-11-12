@@ -2,7 +2,7 @@
 
 namespace HRManagement.DTOs.Leaves.LeaveRequest
 {
-    public class CreateLeaveRequestDto
+    public class    CreateLeaveRequestDto
     {
         [Required(ErrorMessage = "Leave type is required.")]
         public int LeaveTypeId { get; set; }

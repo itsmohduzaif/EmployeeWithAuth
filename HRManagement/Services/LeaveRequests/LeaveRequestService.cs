@@ -14,6 +14,7 @@ using HRManagement.Enums;
 using HRManagement.Helpers;
 using HRManagement.Models;
 using HRManagement.Models.Leaves;
+using HRManagement.Services.BlobStorage;
 using HRManagement.Services.Emails;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,11 +24,11 @@ namespace HRManagement.Services.LeaveRequests
     {
         private readonly AppDbContext _context;
         private readonly string _containerNameForLeaveRequestFiles;
-        private readonly BlobStorageService _blobStorageService;
-        private readonly EmailService _emailService;
-        private readonly LeaveRequestHelper _leaveRequestHelper;   // Transient
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly IEmailService _emailService;
+        private readonly ILeaveRequestHelper _leaveRequestHelper;   // Transient
         
-        public LeaveRequestService(AppDbContext context, IConfiguration configuration, BlobStorageService blobStorageService, EmailService emailService, LeaveRequestHelper leaveRequestHelper)
+        public LeaveRequestService(AppDbContext context, IConfiguration configuration, IBlobStorageService blobStorageService, IEmailService emailService, ILeaveRequestHelper leaveRequestHelper)
         {
             _context = context;
             _blobStorageService = blobStorageService;
@@ -130,46 +131,50 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
+
             // Prepare to store file names
             var fileNames = new List<string>();
 
-            // Validate multiple file uploads
-            if (dto.Files != null && dto.Files.Any())
-            {
-                // Allowed file extensions for leave request
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc", ".txt" };
-                var allowedContentTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/jpg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain" };
+
+            // Commenting Blob Storage Code for now - will uncomment after blob service is ready (access given)
+
+            //// Validate multiple file uploads
+            //if (dto.Files != null && dto.Files.Any())
+            //{
+            //    // Allowed file extensions for leave request
+            //    var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc", ".txt" };
+            //    var allowedContentTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/jpg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain" };
 
 
-                foreach (var file in dto.Files)
-                {
-                    var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
-                    }
+            //    foreach (var file in dto.Files)
+            //    {
+            //        var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+            //        if (!allowedExtensions.Contains(fileExtension))
+            //        {
+            //            return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
+            //        }
 
-                    // Check content type
-                    if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
-                    {
-                        return new ApiResponse(false, "Invalid file type. Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT formats are allowed.", 400, null);
-                    }
+            //        // Check content type
+            //        if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
+            //        {
+            //            return new ApiResponse(false, "Invalid file type. Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT formats are allowed.", 400, null);
+            //        }
 
-                    // Check file size (e.g., max 10 MB)
-                    var maxFileSize = 5 * 1024 * 1024; // 10 MB in bytes
-                    if (file.Length > maxFileSize)
-                    {
-                        return new ApiResponse(false, "One of the files exceeds the maximum allowed size of 10 MB.", 400, null);
-                    }
+            //        // Check file size (e.g., max 10 MB)
+            //        var maxFileSize = 5 * 1024 * 1024; // 10 MB in bytes
+            //        if (file.Length > maxFileSize)
+            //        {
+            //            return new ApiResponse(false, "One of the files exceeds the maximum allowed size of 10 MB.", 400, null);
+            //        }
 
-                    // Generate a unique file name for each file
-                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+            //        // Generate a unique file name for each file
+            //        var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
 
-                    // Upload the file to Azure Blob Storage
-                    string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
-                    fileNames.Add(blobName); // Collect the blob names
-                }
-            }
+            //        // Upload the file to Azure Blob Storage
+            //        string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
+            //        fileNames.Add(blobName); // Collect the blob names
+            //    }
+            //}
 
 
 
@@ -431,75 +436,77 @@ namespace HRManagement.Services.LeaveRequests
 
 
 
-            ////....................................... File Updation Logic .......................................
+            var fileNames = new List<string>();    // Delete this line when uncomment the below commented login
 
-            // Deleting the old files
-            if (req.LeaveRequestFileNames != null && req.LeaveRequestFileNames.Any())
-            {
-                foreach (var fileName in req.LeaveRequestFileNames)
-                {
-                    if (!string.IsNullOrEmpty(fileName))
-                    {
-                        try
-                        {
-                            await _blobStorageService.DeleteFileAsync(fileName, _containerNameForLeaveRequestFiles);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
+            //////....................................... File Updation Logic .......................................
 
-                    }
-                }
-            }
+            //// Deleting the old files
+            //if (req.LeaveRequestFileNames != null && req.LeaveRequestFileNames.Any())
+            //{
+            //    foreach (var fileName in req.LeaveRequestFileNames)
+            //    {
+            //        if (!string.IsNullOrEmpty(fileName))
+            //        {
+            //            try
+            //            {
+            //                await _blobStorageService.DeleteFileAsync(fileName, _containerNameForLeaveRequestFiles);
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                Console.WriteLine(ex.Message);
+            //            }
 
-            req.LeaveRequestFileNames = []; // Reset the file names list
+            //        }
+            //    }
+            //}
 
-            // Deletion complete of the old files.
+            //req.LeaveRequestFileNames = []; // Reset the file names list
 
-
-
-            var fileNames = new List<string>();
-
-            // Validate multiple file uploads
-            if (dto.Files != null && dto.Files.Any())
-            {
-                // Allowed file extensions for leave request
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc", ".txt" };
-                var allowedContentTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/jpg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain" };
+            //// Deletion complete of the old files.
 
 
-                foreach (var file in dto.Files)
-                {
-                    var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
-                    }
 
-                    // Check content type
-                    if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
-                    {
-                        return new ApiResponse(false, "Invalid file type. Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT formats are allowed.", 400, null);
-                    }
+            //var fileNames = new List<string>();
 
-                    // Check file size (e.g., max 10 MB)
-                    var maxFileSize = 5 * 1024 * 1024; // 10 MB in bytes
-                    if (file.Length > maxFileSize)
-                    {
-                        return new ApiResponse(false, "One of the files exceeds the maximum allowed size of 10 MB.", 400, null);
-                    }
+            //// Validate multiple file uploads
+            //if (dto.Files != null && dto.Files.Any())
+            //{
+            //    // Allowed file extensions for leave request
+            //    var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc", ".txt" };
+            //    var allowedContentTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/jpg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain" };
 
-                    // Generate a unique file name for each file
-                    var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
 
-                    // Upload the file to Azure Blob Storage
-                    string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
-                    fileNames.Add(blobName); // Collect the blob names
-                }
-            }
+            //    foreach (var file in dto.Files)
+            //    {
+            //        var fileExtension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+            //        if (!allowedExtensions.Contains(fileExtension))
+            //        {
+            //            return new ApiResponse(false, "Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT file formats are allowed.", 400, null);
+            //        }
 
-            ////.......................................File Updation Logic End.......................................
+            //        // Check content type
+            //        if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
+            //        {
+            //            return new ApiResponse(false, "Invalid file type. Only PDF, JPG, JPEG, PNG, DOCX, DOC, and TXT formats are allowed.", 400, null);
+            //        }
+
+            //        // Check file size (e.g., max 10 MB)
+            //        var maxFileSize = 5 * 1024 * 1024; // 10 MB in bytes
+            //        if (file.Length > maxFileSize)
+            //        {
+            //            return new ApiResponse(false, "One of the files exceeds the maximum allowed size of 10 MB.", 400, null);
+            //        }
+
+            //        // Generate a unique file name for each file
+            //        var uniqueFileName = $"{usernameFromClaim}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+
+            //        // Upload the file to Azure Blob Storage
+            //        string blobName = await _blobStorageService.UploadFileAsync(file, uniqueFileName, _containerNameForLeaveRequestFiles);
+            //        fileNames.Add(blobName); // Collect the blob names
+            //    }
+            //}
+
+            //////.......................................File Updation Logic End.......................................
 
 
 
@@ -510,6 +517,8 @@ namespace HRManagement.Services.LeaveRequests
             req.LeaveTypeId = dto.LeaveTypeId;
             req.LeaveRequestFileNames = fileNames; // Update with new file names
             req.LeaveDaysUsed = requestedLeaveDays;
+            req.IsStartDateHalfDay = dto.IsStartDateHalfDay;
+            req.IsEndDateHalfDay = dto.IsEndDateHalfDay;
 
 
 
@@ -670,56 +679,56 @@ namespace HRManagement.Services.LeaveRequests
         }
 
 
-
+        // NOT BEING USED BY FRONTEND YET
         // Only shows for upcoming leaves (approved) for the employee
-        public async Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim)
-        {
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
+        //public async Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim)
+        //{
+        //    var employee = await _context.Employees
+        //        .FirstOrDefaultAsync(e => e.UserName == usernameFromClaim);
 
-            if (employee == null)
-            {
-                return new ApiResponse(false, "Employee not found", 404, null);
-            }
+        //    if (employee == null)
+        //    {
+        //        return new ApiResponse(false, "Employee not found", 404, null);
+        //    }
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        //    var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            var upcomingLeaves = await _context.LeaveRequests
-                .Where(r => r.EmployeeId == employee.EmployeeId
-                            && r.Status == LeaveRequestStatus.Approved
-                            && r.StartDate >= today)
-                .OrderBy(r => r.StartDate)
-                .ToListAsync();
+        //    var upcomingLeaves = await _context.LeaveRequests
+        //        .Where(r => r.EmployeeId == employee.EmployeeId
+        //                    && r.Status == LeaveRequestStatus.Approved
+        //                    && r.StartDate >= today)
+        //        .OrderBy(r => r.StartDate)
+        //        .ToListAsync();
 
-            if (!upcomingLeaves.Any())
-            {
-                return new ApiResponse(false, "No upcoming leaves found.", 404, null);
-            }
+        //    if (!upcomingLeaves.Any())
+        //    {
+        //        return new ApiResponse(false, "No upcoming leaves found.", 404, null);
+        //    }
 
-            var responseDtos = upcomingLeaves.Select(lr => new GetLeaveRequestsForEmployeeDto
-            {
-                LeaveRequestId = lr.LeaveRequestId,
-                EmployeeId = lr.EmployeeId,
-                LeaveTypeId = lr.LeaveTypeId,
-                StartDate = lr.StartDate,
-                EndDate = lr.EndDate,
-                Reason = lr.Reason,
-                Status = lr.Status,
-                ManagerRemarks = lr.ManagerRemarks,
-                RequestedOn = lr.RequestedOn,
-                ActionedOn = lr.ActionedOn,
-                LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-                TemporaryBlobUrls = lr.LeaveRequestFileNames?
-                    .Where(fileName => !string.IsNullOrEmpty(fileName))
-                    .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                    .ToList(),
-                LeaveDaysUsed = lr.LeaveDaysUsed,
-                IsStartDateHalfDay = lr.IsStartDateHalfDay,
-                IsEndDateHalfDay = lr.IsEndDateHalfDay,
-            }).ToList();
+        //    var responseDtos = upcomingLeaves.Select(lr => new GetLeaveRequestsForEmployeeDto
+        //    {
+        //        LeaveRequestId = lr.LeaveRequestId,
+        //        EmployeeId = lr.EmployeeId,
+        //        LeaveTypeId = lr.LeaveTypeId,
+        //        StartDate = lr.StartDate,
+        //        EndDate = lr.EndDate,
+        //        Reason = lr.Reason,
+        //        Status = lr.Status,
+        //        ManagerRemarks = lr.ManagerRemarks,
+        //        RequestedOn = lr.RequestedOn,
+        //        ActionedOn = lr.ActionedOn,
+        //        LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+        //        TemporaryBlobUrls = lr.LeaveRequestFileNames?
+        //            .Where(fileName => !string.IsNullOrEmpty(fileName))
+        //            .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+        //            .ToList(),
+        //        LeaveDaysUsed = lr.LeaveDaysUsed,
+        //        IsStartDateHalfDay = lr.IsStartDateHalfDay,
+        //        IsEndDateHalfDay = lr.IsEndDateHalfDay,
+        //    }).ToList();
 
-            return new ApiResponse(true, "Upcoming leaves fetched successfully.", 200, responseDtos);
-        }
+        //    return new ApiResponse(true, "Upcoming leaves fetched successfully.", 200, responseDtos);
+        //}
 
 
 
@@ -828,57 +837,15 @@ namespace HRManagement.Services.LeaveRequests
         }
 
 
-        //Get all pending leave requests 
-        //public async Task<ApiResponse> GetPendingLeaveRequests()
+        
+
+        //public async Task<ApiResponse> GetPendingLeaveApprovalCountAsync()
         //{
-        //    // For demo: fetch all pending (customize with your reporting structure)
-        //    var pendingRequests = await _context.LeaveRequests
-        //        .Where(r => r.Status == LeaveRequestStatus.Pending)
-        //        .OrderBy(r => r.StartDate)
-        //        .ToListAsync();
+        //    int count = await _context.LeaveRequests
+        //        .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
 
-        //    if (!pendingRequests.Any())
-        //    {
-        //        return new ApiResponse(false, "No pending leave requests found.", 404, null);
-        //    }
-
-        //    var responseDtos = pendingRequests.Select(lr => new GetLeaveRequestsForEmployeeDto
-        //    {
-        //        LeaveRequestId = lr.LeaveRequestId,
-        //        EmployeeId = lr.EmployeeId,
-        //        LeaveTypeId = lr.LeaveTypeId,
-        //        StartDate = lr.StartDate,
-        //        EndDate = lr.EndDate,
-        //        Reason = lr.Reason,
-        //        Status = lr.Status,
-        //        ManagerRemarks = lr.ManagerRemarks,
-        //        RequestedOn = lr.RequestedOn,
-        //        ActionedOn = lr.ActionedOn,
-        //        LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-        //        TemporaryBlobUrls = lr.LeaveRequestFileNames?
-        //            .Where(fileName => !string.IsNullOrEmpty(fileName))
-        //            .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-        //            .ToList(),
-        //        LeaveDaysUsed = lr.LeaveDaysUsed
-        //    }).ToList();
-
-        //    return new ApiResponse(true, "Leave requests fetched successfully.", 200, responseDtos);
-
-
-
-
-        //    //return new ApiResponse(true, "Pending requests fetched.", 200, pending);
+        //    return new ApiResponse(true, "Pending leave approval count fetched successfully.", 200, count);
         //}
-
-
-
-        public async Task<ApiResponse> GetPendingLeaveApprovalCountAsync()
-        {
-            int count = await _context.LeaveRequests
-                .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
-
-            return new ApiResponse(true, "Pending leave approval count fetched successfully.", 200, count);
-        }
 
 
 
@@ -1130,177 +1097,185 @@ namespace HRManagement.Services.LeaveRequests
 
 
         // the lr which are approved and for this month
-        public async Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync()
-        {
+
+        // NOT BEING USED BY FRONTEND YET
+        //public async Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync()
+        //{
            
-            var now = DateTime.UtcNow;
-            DateOnly startOfMonth = DateOnly.FromDateTime(new DateTime(now.Year, now.Month, 1));
-            DateOnly endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+        //    var now = DateTime.UtcNow;
+        //    DateOnly startOfMonth = DateOnly.FromDateTime(new DateTime(now.Year, now.Month, 1));
+        //    DateOnly endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
 
 
 
 
-            //Start of Month: 01 - 08 - 2025 00:00:00, End of Month: 31 - 08 - 2025 00:00:00
-            Console.WriteLine($"\n\n\n\n\n\nStart of Month: {startOfMonth}, End of Month: {endOfMonth}");
+        //    //Start of Month: 01 - 08 - 2025 00:00:00, End of Month: 31 - 08 - 2025 00:00:00
+        //    Console.WriteLine($"\n\n\n\n\n\nStart of Month: {startOfMonth}, End of Month: {endOfMonth}");
 
-            //startOfMonth.AddMonths(1): 01 - 09 - 2025 00:00:00, startOfMonth.AddMonths(1).AddDays(1): 02 - 09 - 2025 00:00:00
-            Console.WriteLine($"\n\n\n\n\n\nstartOfMonth.AddMonths(1): {startOfMonth.AddMonths(1)}, startOfMonth.AddMonths(1).AddDays(1): {startOfMonth.AddMonths(1).AddDays(1)}");
-
-
-            //var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
-            //    .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
-            //    lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth ||
-            //    lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth ||
-            //    lr.EndDate == startOfMonth ||
-            //    lr.StartDate == endOfMonth ||
-            //    lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
-            //    .OrderBy(r => r.StartDate)
-            //    .ToListAsync();
+        //    //startOfMonth.AddMonths(1): 01 - 09 - 2025 00:00:00, startOfMonth.AddMonths(1).AddDays(1): 02 - 09 - 2025 00:00:00
+        //    Console.WriteLine($"\n\n\n\n\n\nstartOfMonth.AddMonths(1): {startOfMonth.AddMonths(1)}, startOfMonth.AddMonths(1).AddDays(1): {startOfMonth.AddMonths(1).AddDays(1)}");
 
 
-            var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
-                    .Where(lr => lr.Status == LeaveRequestStatus.Approved && // Ensure it's approved
-                                (
-                                    // Case 1: Leave request starts and ends within the current month
-                                    (lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
-
-                                    // Case 2: Leave request starts before the current month but ends within it
-                                    (lr.StartDate < startOfMonth && lr.EndDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
-
-                                    // Case 3: Leave request starts in this month but ends after it
-                                    (lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth && lr.EndDate > endOfMonth) ||
-
-                                    // Case 4: Leave request spans across the current month
-                                    (lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
-                                )
-                    )
-                    .OrderBy(r => r.StartDate)
-                    .ToListAsync();
+        //    //var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
+        //    //    .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
+        //    //    lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth ||
+        //    //    lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth ||
+        //    //    lr.EndDate == startOfMonth ||
+        //    //    lr.StartDate == endOfMonth ||
+        //    //    lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
+        //    //    .OrderBy(r => r.StartDate)
+        //    //    .ToListAsync();
 
 
+        //    var approvedLeaveRequestsOfThisMonth = await _context.LeaveRequests
+        //            .Where(lr => lr.Status == LeaveRequestStatus.Approved && // Ensure it's approved
+        //                        (
+        //                            // Case 1: Leave request starts and ends within the current month
+        //                            (lr.StartDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
 
+        //                            // Case 2: Leave request starts before the current month but ends within it
+        //                            (lr.StartDate < startOfMonth && lr.EndDate >= startOfMonth && lr.EndDate <= endOfMonth) ||
 
-            if (!approvedLeaveRequestsOfThisMonth.Any())
-            {
-                return new ApiResponse(false, "No leave requests found.", 404, null);
-            }
+        //                            // Case 3: Leave request starts in this month but ends after it
+        //                            (lr.StartDate >= startOfMonth && lr.StartDate <= endOfMonth && lr.EndDate > endOfMonth) ||
 
-
-            var responseDtos = new List<object>();
-
-            foreach (var lr in approvedLeaveRequestsOfThisMonth)
-            {
-                var employee = await _context.Employees.FindAsync(lr.EmployeeId);
-
-                if (employee == null)
-                {
-                    // If employee not found, skip this leave request
-                    continue;
-                }
-
-
-                responseDtos.Add(new
-                {
-                    lr.LeaveRequestId,
-                    lr.EmployeeId,
-                    employee.EmployeeName,
-                    employee.UserName,
-                    employee.WorkEmail,
-                    lr.LeaveTypeId,
-                    lr.StartDate,
-                    lr.EndDate,
-                    lr.Reason,
-                    lr.Status,
-                    lr.ManagerRemarks,
-                    lr.RequestedOn,
-                    lr.ActionedOn,
-                    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-                    TemporaryBlobUrls = lr.LeaveRequestFileNames?
-                        .Where(fileName => !string.IsNullOrEmpty(fileName))
-                        .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                        .ToList(),
-                    lr.LeaveDaysUsed,
-                    lr.IsStartDateHalfDay,
-                    lr.IsEndDateHalfDay
-                });
-            }
+        //                            // Case 4: Leave request spans across the current month
+        //                            (lr.StartDate <= endOfMonth && lr.EndDate >= startOfMonth)
+        //                        )
+        //            )
+        //            .OrderBy(r => r.StartDate)
+        //            .ToListAsync();
 
 
 
 
-            //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, approvedLeaveRequestsOfThisMonth);
-            return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, responseDtos);
-            //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, null);
+        //    if (!approvedLeaveRequestsOfThisMonth.Any())
+        //    {
+        //        return new ApiResponse(false, "No leave requests found.", 404, null);
+        //    }
 
-        }
+
+        //    var responseDtos = new List<object>();
+
+        //    foreach (var lr in approvedLeaveRequestsOfThisMonth)
+        //    {
+        //        var employee = await _context.Employees.FindAsync(lr.EmployeeId);
+
+        //        if (employee == null)
+        //        {
+        //            // If employee not found, skip this leave request
+        //            continue;
+        //        }
+
+
+        //        responseDtos.Add(new
+        //        {
+        //            lr.LeaveRequestId,
+        //            lr.EmployeeId,
+        //            employee.EmployeeName,
+        //            employee.UserName,
+        //            employee.WorkEmail,
+        //            lr.LeaveTypeId,
+        //            lr.StartDate,
+        //            lr.EndDate,
+        //            lr.Reason,
+        //            lr.Status,
+        //            lr.ManagerRemarks,
+        //            lr.RequestedOn,
+        //            lr.ActionedOn,
+        //            LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+        //            TemporaryBlobUrls = lr.LeaveRequestFileNames?
+        //                .Where(fileName => !string.IsNullOrEmpty(fileName))
+        //                .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+        //                .ToList(),
+        //            lr.LeaveDaysUsed,
+        //            lr.IsStartDateHalfDay,
+        //            lr.IsEndDateHalfDay
+        //        });
+        //    }
+
+
+
+
+        //    //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, approvedLeaveRequestsOfThisMonth);
+        //    return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, responseDtos);
+        //    //return new ApiResponse(true, "Employees on leave this month fetched successfully.", 200, null);
+
+        //}
+
+
+
+
 
 
 
         // Current Planned Leaves Employees
         // Showing the employees who are currently on leave today (i.e., today falls between their approved leave start and end dates).
-        public async Task<ApiResponse> GetCurrentPlannedLeavesAsync()
-        {
-            //var today = DateTime.UtcNow.Date;
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            Console.WriteLine($"Today: {today}");
-            var currentLeavesToday = await _context.LeaveRequests
-                .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
-                 lr.StartDate <= today && lr.EndDate >= today)
-                .OrderBy(lr => lr.StartDate)
-                .ToListAsync();
+        // NOT BEING USED BY FRONTEND YET
+        //public async Task<ApiResponse> GetCurrentPlannedLeavesAsync()
+        //{
+        //    //var today = DateTime.UtcNow.Date;
+        //    var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-
-            if (!currentLeavesToday.Any())
-            {
-                return new ApiResponse(false, "No leave requests found.", 404, null);
-            }
+        //    Console.WriteLine($"Today: {today}");
+        //    var currentLeavesToday = await _context.LeaveRequests
+        //        .Where(lr => lr.Status == LeaveRequestStatus.Approved &&
+        //         lr.StartDate <= today && lr.EndDate >= today)
+        //        .OrderBy(lr => lr.StartDate)
+        //        .ToListAsync();
 
 
-            var responseDtos = new List<object>();
-
-            foreach (var lr in currentLeavesToday)
-            {
-                var employee = await _context.Employees.FindAsync(lr.EmployeeId);
-
-                if (employee == null)
-                {
-                    // If employee not found, skip this leave request
-                    continue;
-                }
+        //    if (!currentLeavesToday.Any())
+        //    {
+        //        return new ApiResponse(false, "No leave requests found.", 404, null);
+        //    }
 
 
-                responseDtos.Add(new
-                {
-                    lr.LeaveRequestId,
-                    lr.EmployeeId,
-                    employee.EmployeeName,
-                    employee.UserName,
-                    employee.WorkEmail,
-                    lr.LeaveTypeId,
-                    lr.StartDate,
-                    lr.EndDate,
-                    lr.Reason,
-                    lr.Status,
-                    lr.ManagerRemarks,
-                    lr.RequestedOn,
-                    lr.ActionedOn,
-                    LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
-                    TemporaryBlobUrls = lr.LeaveRequestFileNames?
-                        .Where(fileName => !string.IsNullOrEmpty(fileName))
-                        .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
-                        .ToList(),
-                    lr.LeaveDaysUsed,
-                    lr.IsStartDateHalfDay,
-                    lr.IsEndDateHalfDay
-                });
-            }
+        //    var responseDtos = new List<object>();
+
+        //    foreach (var lr in currentLeavesToday)
+        //    {
+        //        var employee = await _context.Employees.FindAsync(lr.EmployeeId);
+
+        //        if (employee == null)
+        //        {
+        //            // If employee not found, skip this leave request
+        //            continue;
+        //        }
 
 
-            //return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, currentLeavesToday);
-            return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, responseDtos);
-        }
+        //        responseDtos.Add(new
+        //        {
+        //            lr.LeaveRequestId,
+        //            lr.EmployeeId,
+        //            employee.EmployeeName,
+        //            employee.UserName,
+        //            employee.WorkEmail,
+        //            lr.LeaveTypeId,
+        //            lr.StartDate,
+        //            lr.EndDate,
+        //            lr.Reason,
+        //            lr.Status,
+        //            lr.ManagerRemarks,
+        //            lr.RequestedOn,
+        //            lr.ActionedOn,
+        //            LeaveRequestFileNames = lr.LeaveRequestFileNames ?? new List<string>(),
+        //            TemporaryBlobUrls = lr.LeaveRequestFileNames?
+        //                .Where(fileName => !string.IsNullOrEmpty(fileName))
+        //                .Select(fileName => _blobStorageService.GetTemporaryBlobUrl(fileName, _containerNameForLeaveRequestFiles))
+        //                .ToList(),
+        //            lr.LeaveDaysUsed,
+        //            lr.IsStartDateHalfDay,
+        //            lr.IsEndDateHalfDay
+        //        });
+        //    }
+
+
+        //    //return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, currentLeavesToday);
+        //    return new ApiResponse(true, "Current and upcoming planned leaves fetched.", 200, responseDtos);
+        //}
 
     }
 }

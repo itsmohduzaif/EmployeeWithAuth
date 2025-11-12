@@ -18,11 +18,11 @@ namespace HRManagement.Services.Accounts
     public class AccountService : IAccountService
     {
         private readonly UserManager<User> _userManager;
-        private readonly JwtHandler _jwtHandler;
+        private readonly IJwtHandler _jwtHandler;
         private readonly AppDbContext _context;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
 
-        public AccountService(UserManager<User> userManager, JwtHandler jwtHandler, AppDbContext context, EmailService emailService)
+        public AccountService(UserManager<User> userManager, IJwtHandler jwtHandler, AppDbContext context, IEmailService emailService)
         {
             _userManager = userManager;
             _jwtHandler = jwtHandler;
@@ -40,7 +40,7 @@ namespace HRManagement.Services.Accounts
                 return new ApiResponse(false, "Invalid email or password", 401, null);
 
             var roles = await _userManager.GetRolesAsync(user);
-            var token = _jwtHandler.CreateToken(user, roles);
+            var token = _jwtHandler.CreateToken(user, roles);       
 
             var employee = await _context.Employees.FirstOrDefaultAsync(x => x.WorkEmail == user.Email);
 

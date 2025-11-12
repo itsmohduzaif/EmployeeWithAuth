@@ -12,15 +12,15 @@ namespace HRManagement.Services.LeaveRequests
         Task<ApiResponse> UpdateLeaveRequestAsync(int requestId, UpdateLeaveRequestDto dto, string usernameFromClaim);
         Task<ApiResponse> CancelLeaveRequestAsync(int requestId, string usernameFromClaim);
         Task<ApiResponse> GetLeaveBalancesForEmployeeAsync(string usernameFromClaim, int year);
-        Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim);
+        //Task<ApiResponse> GetUpcomingLeavesForEmployeeAsync(string usernameFromClaim);    
         // Manager endpoints
         Task<ApiResponse> GetAllLeaveRequestsAsync(GetLeaveRequestsForAdminFilterDto filters);
         //Task<ApiResponse> GetPendingLeaveRequests();
-        Task<ApiResponse> GetPendingLeaveApprovalCountAsync();
+        //Task<ApiResponse> GetPendingLeaveApprovalCountAsync();
         Task<ApiResponse> ApproveLeaveRequestAsync(int requestId, ApproveLeaveRequestDto dto);
         Task<ApiResponse> RejectLeaveRequestAsync(int requestId, RejectLeaveRequestDto dto);
         Task<ApiResponse> RevertApprovalAsync(int requestId, RemarksDto dto);
-        Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync();
-        Task<ApiResponse> GetCurrentPlannedLeavesAsync();
+        //Task<ApiResponse> GetEmployeesOnLeaveThisMonthAsync();
+        //Task<ApiResponse> GetCurrentPlannedLeavesAsync();
     }
 }
